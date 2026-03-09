@@ -42,6 +42,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method === 'POST') {
       const { booking_id, customer_id, amount, payment_method } = req.body;
 
+      if (!booking_id || !customer_id || !amount || !payment_method) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
       const result = await query(
         'INSERT INTO payments (booking_id, customer_id, amount, payment_method, status) VALUES ($1, $2, $3, $4, $5) RETURNING *',
         [booking_id, customer_id, amount, payment_method, 'paid']

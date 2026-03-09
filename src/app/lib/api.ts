@@ -218,6 +218,12 @@ export async function createPayment(payment: Omit<Payment, 'id' | 'createdAt'>):
   });
 }
 
+export async function deletePayment(id: string): Promise<void> {
+  return await fetchWithAuth(`${API_BASE_URL}/payments?id=${id}`, {
+    method: 'DELETE',
+  });
+}
+
 // Mock data functions (fallback when backend is not running)
 function getMockProperties(): Property[] {
   return [
