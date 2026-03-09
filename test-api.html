@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skyway Suites API Tester</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #6B7C3C;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #6B7C3C;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #5a6832;
+    }
+    .success {
+      color: #22c55e;
+      font-weight: bold;
+    }
+    .error {
+      color: #ef4444;
+      font-weight: bold;
+    }
+    pre {
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 300px;
+      margin: 5px;
+    }
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .status.pass {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .status.fail {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔧 Skyway Suites API Tester</h1>
+  <p>Use this page to test your API endpoints and diagnose issues.</p>
+
+  <!-- API Base URL -->
+  <div class="test-section">
+    <h2>1. Configure API URL</h2>
+    <label>
+      API Base URL:
+      <input type="text" id="apiUrl" value="/api" placeholder="/api or https://your-app.vercel.app/api">
+    </label>
+    <button onclick="saveApiUrl()">Save</button>
+    <p id="apiUrlStatus"></p>
+  </div>
+
+  <!-- Health Check -->
+  <div class="test-section">
+    <h2>2. Health Check</h2>
+    <button onclick="testHealth()">Test Health Endpoint</button>
+    <div id="healthResult"></div>
+  </div>
+
+  <!-- Properties -->
+  <div class="test-section">
+    <h2>3. Test Properties API</h2>
+    <button onclick="testGetProperties()">GET /api/properties</button>
+    <button onclick="testCreateProperty()">POST /api/properties</button>
+    <div id="propertiesResult"></div>
+  </div>
+
+  <!-- Bookings -->
+  <div class="test-section">
+    <h2>4. Test Bookings API</h2>
+    <button onclick="testGetBookings()">GET /api/bookings</button>
+    <div id="bookingsResult"></div>
+  </div>
+
+  <!-- Customers -->
+  <div class="test-section">
+    <h2>5. Test Customers API</h2>
+    <button onclick="testGetCustomers()">GET /api/customers</button>
+    <div id="customersResult"></div>
+  </div>
+
+  <!-- Payments -->
+  <div class="test-section">
+    <h2>6. Test Payments API</h2>
+    <button onclick="testGetPayments()">GET /api/payments</button>
+    <div id="paymentsResult"></div>
+  </div>
+
+  <!-- Settings -->
+  <div class="test-section">
+    <h2>7. Test Settings API</h2>
+    <button onclick="testGetSettings()">GET /api/settings?category=general</button>
+    <div id="settingsResult"></div>
+  </div>
+
+  <!-- Auth -->
+  <div class="test-section">
+    <h2>8. Test Auth API</h2>
+    <div style="margin-bottom: 10px;">
+      <input type="email" id="loginEmail" placeholder="Email" value="admin@skywaysuites.com">
+      <input type="password" id="loginPassword" placeholder="Password" value="admin123">
+      <button onclick="testLogin()">Test Login</button>
+    </div>
+    <div id="authResult"></div>
+  </div>
+
+  <!-- Database Connection -->
+  <div class="test-section">
+    <h2>9. Overall Status</h2>
+    <button onclick="runAllTests()">Run All Tests</button>
+    <div id="overallResult"></div>
+  </div>
+
+  <script>
+    let apiUrl = '/api';
+
+    function saveApiUrl() {
+      apiUrl = document.getElementById('apiUrl').value;
+      localStorage.setItem('apiUrl', apiUrl);
+      document.getElementById('apiUrlStatus').innerHTML = '<span class="success">✓ API URL saved</span>';
+    }
+
+    // Load saved API URL
+    window.onload = () => {
+      const saved = localStorage.getItem('apiUrl');
+      if (saved) {
+        apiUrl = saved;
+        document.getElementById('apiUrl').value = saved;
+      }
+    };
+
+    async function testApi(endpoint, options = {}) {
+      const startTime = Date.now();
+      try {
+        const response = await fetch(apiUrl + endpoint, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            ...options.headers,
+          },
+        });
+        
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+        
+        const contentType = response.headers.get('content-type');
+        let data;
+        
+        if (contentType && contentType.includes('application/json')) {
+          data = await response.json();
+        } else {
+          data = await response.text();
+        }
+
+        return {
+          success: response.ok,
+          status: response.status,
+          statusText: response.statusText,
+          data,
+          duration,
+        };
+      } catch (error) {
+        const endTime = Date.now();
+        return {
+          success: false,
+          error: error.message,
+          duration: endTime - startTime,
+        };
+      }
+    }
+
+    function displayResult(elementId, result) {
+      const el = document.getElementById(elementId);
+      const statusClass = result.success ? 'pass' : 'fail';
+      const statusText = result.success ? 'PASS' : 'FAIL';
+      
+      let html = `
+        <div style="margin-top: 10px;">
+          <span class="status ${statusClass}">${statusText}</span>
+          <span style="margin-left: 10px;">Status: ${result.status || 'Network Error'}</span>
+          <span style="margin-left: 10px;">Duration: ${result.duration}ms</span>
+        </div>
+        <pre>${JSON.stringify(result.data || result.error, null, 2)}</pre>
+      `;
+      
+      el.innerHTML = html;
+    }
+
+    async function testHealth() {
+      const result = await testApi('/health');
+      displayResult('healthResult', result);
+    }
+
+    async function testGetProperties() {
+      const result = await testApi('/properties');
+      displayResult('propertiesResult', result);
+    }
+
+    async function testCreateProperty() {
+      const property = {
+        title: 'Test Property',
+        description: 'This is a test property',
+        price: 100,
+        location: 'Test Location',
+        bedrooms: 2,
+        bathrooms: 1,
+        guests: 4,
+        image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+        amenities: ['WiFi', 'Kitchen'],
+        available: true,
+        calendar_sync_enabled: false,
+      };
+      
+      const result = await testApi('/properties', {
+        method: 'POST',
+        body: JSON.stringify(property),
+      });
+      displayResult('propertiesResult', result);
+    }
+
+    async function testGetBookings() {
+      const result = await testApi('/bookings');
+      displayResult('bookingsResult', result);
+    }
+
+    async function testGetCustomers() {
+      const result = await testApi('/customers');
+      displayResult('customersResult', result);
+    }
+
+    async function testGetPayments() {
+      const result = await testApi('/payments');
+      displayResult('paymentsResult', result);
+    }
+
+    async function testGetSettings() {
+      const result = await testApi('/settings?category=general');
+      displayResult('settingsResult', result);
+    }
+
+    async function testLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      const result = await testApi('/auth?action=login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+      displayResult('authResult', result);
+    }
+
+    async function runAllTests() {
+      const el = document.getElementById('overallResult');
+      el.innerHTML = '<p>Running tests...</p>';
+      
+      const tests = [
+        { name: 'Health Check', fn: () => testApi('/health') },
+        { name: 'Get Properties', fn: () => testApi('/properties') },
+        { name: 'Get Bookings', fn: () => testApi('/bookings') },
+        { name: 'Get Customers', fn: () => testApi('/customers') },
+        { name: 'Get Payments', fn: () => testApi('/payments') },
+        { name: 'Get Settings', fn: () => testApi('/settings?category=general') },
+      ];
+
+      const results = [];
+      for (const test of tests) {
+        const result = await test.fn();
+        results.push({ name: test.name, ...result });
+      }
+
+      const passCount = results.filter(r => r.success).length;
+      const failCount = results.filter(r => !r.success).length;
+
+      let html = `
+        <h3>Test Results: ${passCount} passed, ${failCount} failed</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr style="background: #f9fafb; text-align: left;">
+            <th style="padding: 8px;">Test</th>
+            <th style="padding: 8px;">Status</th>
+            <th style="padding: 8px;">Response Time</th>
+          </tr>
+      `;
+
+      results.forEach(r => {
+        const statusClass = r.success ? 'pass' : 'fail';
+        const statusText = r.success ? 'PASS' : 'FAIL';
+        html += `
+          <tr style="border-bottom: 1px solid #e5e7eb;">
+            <td style="padding: 8px;">${r.name}</td>
+            <td style="padding: 8px;"><span class="status ${statusClass}">${statusText}</span></td>
+            <td style="padding: 8px;">${r.duration}ms</td>
+          </tr>
+        `;
+      });
+
+      html += '</table>';
+
+      if (failCount > 0) {
+        html += `
+          <div style="margin-top: 20px; padding: 15px; background: #fee2e2; border-radius: 4px; color: #991b1b;">
+            <h4>❌ Issues Detected</h4>
+            <p><strong>Common fixes:</strong></p>
+            <ul>
+              <li>Verify <code>DATABASE_URL</code> is set in Vercel environment variables</li>
+              <li>Run <code>/backend-api/setup-database.sql</code> in Neon SQL Editor</li>
+              <li>Check Vercel Function logs for specific errors</li>
+              <li>Ensure latest code is deployed</li>
+            </ul>
+            <p><strong>Read the full guide:</strong> <code>/TROUBLESHOOTING_API_ERRORS.md</code></p>
+          </div>
+        `;
+      } else {
+        html += `
+          <div style="margin-top: 20px; padding: 15px; background: #dcfce7; border-radius: 4px; color: #166534;">
+            <h4>✅ All Tests Passed!</h4>
+            <p>Your API is working correctly. You can now use the application.</p>
+          </div>
+        `;
+      }
+
+      el.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
