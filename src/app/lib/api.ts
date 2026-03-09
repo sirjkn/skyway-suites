@@ -12,8 +12,11 @@ export interface Property {
   bathrooms: number;
   guests: number;
   image: string;
+  images?: string[]; // Multiple images support
   amenities: string[];
   available: boolean;
+  icalUrl?: string;
+  airbnbCalendarUrl?: string;
 }
 
 export interface Booking {
@@ -173,6 +176,19 @@ export async function createCustomer(customer: Omit<Customer, 'id' | 'createdAt'
   });
 }
 
+export async function updateCustomer(id: string, customer: Partial<Omit<Customer, 'id' | 'createdAt' | 'totalBookings'>>): Promise<Customer> {
+  return await fetchWithAuth(`${API_BASE_URL}/customers/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(customer),
+  });
+}
+
+export async function deleteCustomer(id: string): Promise<void> {
+  return await fetchWithAuth(`${API_BASE_URL}/customers/${id}`, {
+    method: 'DELETE',
+  });
+}
+
 // Payments API
 export async function getPayments(): Promise<Payment[]> {
   try {
@@ -326,4 +342,56 @@ export async function updateHeroSettings(settings: HeroSettings): Promise<HeroSe
     method: 'PUT',
     body: JSON.stringify(settings),
   });
+}
+
+// Helper function to check for booking conflicts (double booking prevention)
+export function hasBookingConflict(
+  checkIn: string,
+  checkOut: string,
+  propertyId: string,
+  bookings: Booking[],
+  payments: Payment[],
+  excludeBookingId?: string
+): boolean {
+  const newCheckIn = new Date(checkIn);
+  const newCheckOut = new Date(checkOut);
+
+  // Get all confirmed bookings for this property
+  const propertyBookings = bookings.filter(
+    booking => 
+      booking.propertyId === propertyId && 
+      booking.id !== excludeBookingId
+  );
+
+  // Check each booking for conflicts
+  for (const booking of propertyBookings) {
+    // Check if booking is paid (confirmed)
+    const payment = payments.find(p => p.bookingId === booking.id);
+    const isPaid = payment && payment.status === 'paid' && payment.amount >= booking.totalPrice;
+
+    // Only check for conflicts with paid bookings
+    if (isPaid) {
+      const existingCheckIn = new Date(booking.checkIn);
+      const existingCheckOut = new Date(booking.checkOut);
+
+      // Check for date overlap
+      const hasOverlap = (
+        (newCheckIn >= existingCheckIn && newCheckIn < existingCheckOut) ||
+        (newCheckOut > existingCheckIn && newCheckOut <= existingCheckOut) ||
+        (newCheckIn <= existingCheckIn && newCheckOut >= existingCheckOut)
+      );
+
+      if (hasOverlap) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// Generate iCal URL for a property
+export function generateICalUrl(propertyId: string): string {
+  const baseUrl = window.location.origin;
+  return `${baseUrl}/api/calendar/${propertyId}.ics`;
 }

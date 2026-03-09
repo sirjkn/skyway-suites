@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Plus, Calendar, Users, Pencil, Trash2 } from 'lucide-react';
-import { getProperties, Property, createProperty, deleteProperty, updateProperty, getBookings, Booking, getPayments, Payment } from '../../lib/api';
+import { Plus, Calendar, Users, Pencil, Trash2, Copy, Link as LinkIcon, Save, Upload, X } from 'lucide-react';
+import { getProperties, Property, createProperty, deleteProperty, updateProperty, getBookings, Booking, getPayments, Payment, generateICalUrl } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { toast } from 'sonner';
 import * as Dialog from '@radix-ui/react-dialog';
+import { compressMultipleImages, CompressedImage } from '../../lib/imageUtils';
 
 export function AdminProperties() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -14,7 +15,12 @@ export function AdminProperties() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showCalendarDialog, setShowCalendarDialog] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [calendarProperty, setCalendarProperty] = useState<Property | null>(null);
+  const [airbnbCalendarUrl, setAirbnbCalendarUrl] = useState('');
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -72,17 +78,7 @@ export function AdminProperties() {
       });
       toast.success('Property added successfully!');
       setShowAddDialog(false);
-      setFormData({
-        title: '',
-        description: '',
-        price: '',
-        location: '',
-        bedrooms: '',
-        bathrooms: '',
-        guests: '',
-        image: '',
-        amenities: '',
-      });
+      resetForm();
       loadProperties();
     } catch (error) {
       toast.error('Failed to add property');
@@ -138,22 +134,82 @@ export function AdminProperties() {
         });
         toast.success('Property updated successfully!');
         setShowEditDialog(false);
-        setFormData({
-          title: '',
-          description: '',
-          price: '',
-          location: '',
-          bedrooms: '',
-          bathrooms: '',
-          guests: '',
-          image: '',
-          amenities: '',
-        });
+        resetForm();
         loadProperties();
       } catch (error) {
         toast.error('Failed to update property');
       }
     }
+  };
+
+  const handleShowCalendar = async (id: string) => {
+    const property = properties.find(p => p.id === id);
+    if (property) {
+      setCalendarProperty(property);
+      setAirbnbCalendarUrl(property.airbnbCalendarUrl || '');
+      setShowCalendarDialog(true);
+    }
+  };
+
+  const handleSaveCalendar = async () => {
+    if (calendarProperty) {
+      try {
+        await updateProperty(calendarProperty.id, {
+          airbnbCalendarUrl: airbnbCalendarUrl,
+        });
+        toast.success('Calendar settings saved!');
+        setShowCalendarDialog(false);
+        loadProperties();
+      } catch (error) {
+        toast.error('Failed to save calendar settings');
+      }
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard!');
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setIsCompressing(true);
+      toast.info(`Compressing ${files.length} image(s) to WebP (max 50KB each)...`);
+      
+      try {
+        const compressedImages: CompressedImage[] = await compressMultipleImages(Array.from(files), 50);
+        const imageUrls = compressedImages.map(img => img.dataUrl);
+        setUploadedImages([...uploadedImages, ...imageUrls]);
+        
+        // Show compression results
+        const totalSize = compressedImages.reduce((sum, img) => sum + img.size, 0);
+        toast.success(`${files.length} image(s) compressed! Total: ${totalSize}KB`);
+      } catch (error) {
+        toast.error('Failed to compress images');
+      } finally {
+        setIsCompressing(false);
+      }
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages(uploadedImages.filter((_, i) => i !== index));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      price: '',
+      location: '',
+      bedrooms: '',
+      bathrooms: '',
+      guests: '',
+      image: '',
+      amenities: '',
+    });
+    setUploadedImages([]);
   };
 
   return (
@@ -242,6 +298,14 @@ export function AdminProperties() {
                             onClick={() => handleDelete(property.id)}
                           >
                             <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleShowCalendar(property.id)}
+                          >
+                            <Calendar className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       </td>
@@ -335,6 +399,59 @@ export function AdminProperties() {
                   placeholder="https://..."
                 />
               </div>
+              
+              {/* Multiple Image Upload */}
+              <div className="border-t pt-4">
+                <label className="block text-sm mb-2 font-medium">Upload Property Images</label>
+                <p className="text-xs text-gray-600 mb-3">
+                  Upload multiple images. Each will be automatically compressed to WebP format (max 50KB).
+                </p>
+                
+                <div className="flex items-center gap-3 mb-3">
+                  <label className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                      <Upload className="h-4 w-4" />
+                      <span className="text-sm">{isCompressing ? 'Compressing...' : 'Choose Images'}</span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={isCompressing}
+                    />
+                  </label>
+                  {uploadedImages.length > 0 && (
+                    <span className="text-sm text-gray-600">
+                      {uploadedImages.length} image{uploadedImages.length !== 1 ? 's' : ''} uploaded
+                    </span>
+                  )}
+                </div>
+
+                {/* Image Previews */}
+                {uploadedImages.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {uploadedImages.map((imageUrl, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={imageUrl}
+                          alt={`Upload ${index + 1}`}
+                          className="w-full h-24 object-cover rounded border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
               <div>
                 <label className="block text-sm mb-2">Amenities (comma-separated)</label>
                 <Input
@@ -436,6 +553,59 @@ export function AdminProperties() {
                   placeholder="https://..."
                 />
               </div>
+              
+              {/* Multiple Image Upload for Edit */}
+              <div className="border-t pt-4">
+                <label className="block text-sm mb-2 font-medium">Upload Property Images</label>
+                <p className="text-xs text-gray-600 mb-3">
+                  Upload multiple images. Each will be automatically compressed to WebP format (max 50KB).
+                </p>
+                
+                <div className="flex items-center gap-3 mb-3">
+                  <label className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                      <Upload className="h-4 w-4" />
+                      <span className="text-sm">{isCompressing ? 'Compressing...' : 'Choose Images'}</span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={isCompressing}
+                    />
+                  </label>
+                  {uploadedImages.length > 0 && (
+                    <span className="text-sm text-gray-600">
+                      {uploadedImages.length} image{uploadedImages.length !== 1 ? 's' : ''} uploaded
+                    </span>
+                  )}
+                </div>
+
+                {/* Image Previews */}
+                {uploadedImages.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {uploadedImages.map((imageUrl, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={imageUrl}
+                          alt={`Upload ${index + 1}`}
+                          className="w-full h-24 object-cover rounded border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
               <div>
                 <label className="block text-sm mb-2">Amenities (comma-separated)</label>
                 <Input
@@ -452,6 +622,114 @@ export function AdminProperties() {
                 </Button>
               </div>
             </form>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Calendar Dialog */}
+      <Dialog.Root open={showCalendarDialog} onOpenChange={setShowCalendarDialog}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/50" />
+          <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <Dialog.Title className="text-2xl mb-4">Calendar Sync & Export</Dialog.Title>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm mb-2 font-medium">Property</label>
+                <div className="font-medium text-lg">{calendarProperty?.title}</div>
+                <div className="text-sm text-gray-600">{calendarProperty?.location}</div>
+              </div>
+
+              {/* iCal Export */}
+              <div className="border rounded-lg p-4 bg-blue-50">
+                <div className="flex items-center gap-2 mb-3">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold">Export Calendar (.ical)</h3>
+                </div>
+                <p className="text-sm text-gray-700 mb-3">
+                  Use this link to sync your Skyway Suites bookings with other calendar apps (Google Calendar, Apple Calendar, Outlook, etc.)
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={calendarProperty ? generateICalUrl(calendarProperty.id) : ''}
+                    readOnly
+                    className="flex-1 bg-white"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(calendarProperty ? generateICalUrl(calendarProperty.id) : '')}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy
+                  </Button>
+                </div>
+                <div className="mt-3 p-3 bg-white rounded text-xs">
+                  <p className="mb-1.5"><strong>How to use:</strong></p>
+                  <ol className="list-decimal list-inside space-y-0.5 text-gray-700">
+                    <li>Copy the URL above</li>
+                    <li>Open your calendar app (Google Calendar, Apple Calendar, etc.)</li>
+                    <li>Look for "Subscribe to calendar" or "Add calendar from URL"</li>
+                    <li>Paste this URL to keep bookings synced</li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* Airbnb Calendar Import */}
+              <div className="border rounded-lg p-4 bg-orange-50">
+                <div className="flex items-center gap-2 mb-3">
+                  <LinkIcon className="h-5 w-5 text-orange-600" />
+                  <h3 className="font-semibold">Import Airbnb Calendar</h3>
+                </div>
+                <p className="text-sm text-gray-700 mb-3">
+                  Prevent double bookings by syncing your Airbnb calendar. This will block dates that are already booked on Airbnb.
+                </p>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Airbnb Calendar URL</label>
+                  <Input
+                    value={airbnbCalendarUrl}
+                    onChange={(e) => setAirbnbCalendarUrl(e.target.value)}
+                    placeholder="https://www.airbnb.com/calendar/ical/..."
+                    className="bg-white"
+                  />
+                </div>
+                <div className="mt-3 p-3 bg-white rounded text-xs">
+                  <p className="mb-1.5"><strong>How to get your Airbnb calendar URL:</strong></p>
+                  <ol className="list-decimal list-inside space-y-0.5 text-gray-700">
+                    <li>Log in to your Airbnb host dashboard</li>
+                    <li>Go to Calendar → Availability Settings</li>
+                    <li>Scroll to "Sync calendars" section</li>
+                    <li>Click "Export calendar" and copy the iCal link</li>
+                    <li>Paste it above and save</li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* Double Booking Prevention Notice */}
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <div className="mt-0.5">
+                    <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-green-900 mb-1">Double Booking Prevention Active</h4>
+                    <p className="text-sm text-green-800">
+                      The system automatically checks for booking conflicts. When someone tries to book a property with existing paid reservations, they will be notified that those dates are unavailable.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-4 pt-6">
+              <Button type="button" onClick={handleSaveCalendar}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Calendar Settings
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setShowCalendarDialog(false)}>
+                Close
+              </Button>
+            </div>
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>

@@ -19,131 +19,169 @@ export function Header() {
   ];
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <Building2 className="h-8 w-8 text-[#6B7C3C]" />
-            <span className="text-xl font-semibold text-[#3a3a3a]">Skyway Suites</span>
-          </Link>
+    <>
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`text-sm font-medium transition-colors ${
-                  isActive(link.path)
-                    ? 'text-[#6B7C3C]'
-                    : 'text-[#3a3a3a] hover:text-[#6B7C3C]'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+      <header className="bg-gradient-to-r from-[#3a3a3a] via-[#4a5940] to-[#6B7C3C] shadow-lg sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2">
+              <Building2 className="h-8 w-8 text-[#C9B99B]" />
+              <span className="text-xl font-semibold text-white">Skyway Suites</span>
+            </Link>
 
-          {/* Auth Buttons */}
-          <div className="hidden md:flex items-center gap-4">
-            {user ? (
-              <>
-                <span className="text-sm text-[#3a3a3a]">Hello, {user.name}</span>
-                {isAdmin && (
-                  <Link to="/admin">
-                    <Button variant="outline" size="sm">
-                      Admin Dashboard
-                    </Button>
-                  </Link>
-                )}
-                <Button onClick={logout} variant="outline" size="sm">
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/login">
-                  <Button variant="outline" size="sm">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/create-account">
-                  <Button size="sm">Create Account</Button>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6 text-[#3a3a3a]" />
-            ) : (
-              <Menu className="h-6 w-6 text-[#3a3a3a]" />
-            )}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t">
-            <nav className="flex flex-col gap-4">
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-8">
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`text-sm font-medium ${
-                    isActive(link.path) ? 'text-[#6B7C3C]' : 'text-[#3a3a3a]'
+                  className={`text-sm font-medium transition-colors ${
+                    isActive(link.path)
+                      ? 'text-[#C9B99B] border-b-2 border-[#C9B99B] pb-1'
+                      : 'text-white hover:text-[#C9B99B]'
                   }`}
-                  onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
                 </Link>
               ))}
+            </nav>
+
+            {/* Desktop Auth Buttons */}
+            <div className="hidden md:flex items-center gap-4">
               {user ? (
                 <>
-                  <span className="text-sm text-[#3a3a3a]">Hello, {user.name}</span>
+                  <span className="text-sm text-white">Hello, {user.name}</span>
                   {isAdmin && (
-                    <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="outline" size="sm" className="w-full">
+                    <Link to="/admin">
+                      <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
                         Admin Dashboard
                       </Button>
                     </Link>
                   )}
-                  <Button
-                    onClick={() => {
-                      logout();
-                      setMobileMenuOpen(false);
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                  >
+                  <Button onClick={logout} variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
                     Logout
                   </Button>
                 </>
               ) : (
                 <>
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" size="sm" className="w-full">
+                  <Link to="/login">
+                    <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
                       Login
                     </Button>
                   </Link>
-                  <Link to="/create-account" onClick={() => setMobileMenuOpen(false)}>
-                    <Button size="sm" className="w-full">
+                  <Link to="/create-account">
+                    <Button size="sm" className="bg-[#C9B99B] text-[#3a3a3a] hover:bg-[#d4c4a8]">
                       Create Account
                     </Button>
                   </Link>
                 </>
               )}
-            </nav>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <Menu className="h-6 w-6 text-white" />
+            </button>
           </div>
-        )}
-      </div>
-    </header>
+        </div>
+      </header>
+
+      {/* Mobile Slide-out Menu */}
+      <aside
+        className={`
+          fixed top-0 right-0 h-full w-72 z-50
+          bg-gradient-to-b from-[#3a3a3a] via-[#4a5940] to-[#6B7C3C]
+          shadow-2xl transform transition-transform duration-300 ease-in-out
+          ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}
+          md:hidden
+        `}
+      >
+        {/* Close Button */}
+        <div className="flex justify-between items-center p-4 border-b border-white/20">
+          <Link to="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
+            <Building2 className="h-6 w-6 text-[#C9B99B]" />
+            <span className="font-semibold text-white">Skyway Suites</span>
+          </Link>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="p-2 text-white hover:text-[#C9B99B] transition-colors"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Mobile Navigation */}
+        <nav className="flex flex-col p-4 space-y-1">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                isActive(link.path)
+                  ? 'bg-white/20 text-[#C9B99B]'
+                  : 'text-white hover:bg-white/10'
+              }`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Mobile Auth Section */}
+        <div className="p-4 border-t border-white/20 mt-auto">
+          {user ? (
+            <div className="space-y-3">
+              <div className="px-4 py-2 text-white">
+                <p className="text-xs text-white/70">Logged in as</p>
+                <p className="font-semibold">{user.name}</p>
+              </div>
+              {isAdmin && (
+                <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="outline" size="sm" className="w-full bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
+                    Admin Dashboard
+                  </Button>
+                </Link>
+              )}
+              <Button
+                onClick={() => {
+                  logout();
+                  setMobileMenuOpen(false);
+                }}
+                variant="outline"
+                size="sm"
+                className="w-full bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]"
+              >
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="outline" size="sm" className="w-full bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
+                  Login
+                </Button>
+              </Link>
+              <Link to="/create-account" onClick={() => setMobileMenuOpen(false)}>
+                <Button size="sm" className="w-full bg-[#C9B99B] text-[#3a3a3a] hover:bg-[#d4c4a8]">
+                  Create Account
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </aside>
+    </>
   );
 }
