@@ -1,6 +1,30 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from './config/db';
 
+// Helper to transform database row to API format
+function transformProperty(row: any) {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    price: parseFloat(row.price),
+    location: row.location,
+    bedrooms: row.bedrooms,
+    bathrooms: row.bathrooms,
+    guests: row.guests,
+    image: row.image,
+    amenities: row.amenities || [],
+    available: row.available,
+    icalUrl: row.ical_export_url,
+    airbnbCalendarUrl: row.airbnb_import_url,
+    bookingCalendarUrl: row.booking_import_url,
+    vrboCalendarUrl: row.vrbo_import_url,
+    calendarSyncEnabled: row.calendar_sync_enabled,
+    lastCalendarSync: row.last_calendar_sync,
+    createdAt: row.created_at
+  };
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -24,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(404).json({ error: 'Property not found' });
         }
 
-        return res.status(200).json(result.rows[0]);
+        return res.status(200).json(transformProperty(result.rows[0]));
       }
 
       if (req.method === 'PUT') {
@@ -61,7 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(404).json({ error: 'Property not found' });
         }
 
-        return res.status(200).json(result.rows[0]);
+        return res.status(200).json(transformProperty(result.rows[0]));
       }
 
       if (req.method === 'DELETE') {
@@ -73,7 +97,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Collection operations (when no ID is provided)
     if (req.method === 'GET') {
       const result = await query('SELECT * FROM properties WHERE available = true ORDER BY created_at DESC');
-      return res.status(200).json(result.rows);
+      return res.status(200).json(result.rows.map(transformProperty));
     }
 
     if (req.method === 'POST') {
@@ -103,7 +127,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
          ical_export_url, airbnb_import_url, booking_import_url, vrbo_import_url, calendar_sync_enabled]
       );
 
-      return res.status(200).json(result.rows[0]);
+      return res.status(200).json(transformProperty(result.rows[0]));
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

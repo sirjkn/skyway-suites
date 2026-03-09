@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { query } from './config/db';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
@@ -15,9 +16,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  return res.status(200).json({
-    status: 'ok',
-    message: 'Skyway Suites API is running',
-    timestamp: new Date().toISOString()
-  });
+  try {
+    // Test database connection
+    await query('SELECT 1');
+    
+    return res.status(200).json({
+      status: 'ok',
+      database: 'connected',
+      message: 'Skyway Suites API is running',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    return res.status(500).json({
+      status: 'error',
+      database: 'disconnected',
+      message: 'Database connection failed',
+      timestamp: new Date().toISOString()
+    });
+  }
 }

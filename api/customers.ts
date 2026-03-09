@@ -2,6 +2,18 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from './config/db';
 import { hashPassword } from './utils/auth';
 
+// Helper to transform database row to API format
+function transformCustomer(row: any) {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    createdAt: row.created_at,
+    totalBookings: row.total_bookings || 0
+  };
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -68,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         GROUP BY c.id
         ORDER BY c.created_at DESC
       `);
-      return res.status(200).json(result.rows);
+      return res.status(200).json(result.rows.map(transformCustomer));
     }
 
     if (req.method === 'POST') {

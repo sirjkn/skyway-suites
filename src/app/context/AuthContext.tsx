@@ -31,10 +31,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (token) {
       const userData = localStorage.getItem('user');
       if (userData) {
-        setUser(JSON.parse(userData));
+        try {
+          setUser(JSON.parse(userData));
+        } catch (error) {
+          console.error('Failed to parse user data:', error);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
       }
     }
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
 
   const login = async (email: string, password: string) => {
     // Try API first, fallback to mock data in development
