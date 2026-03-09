@@ -6,49 +6,53 @@ You're getting these errors:
 - ❌ "Failed to delete property"
 - ❌ "Failed to delete customer"
 
-## 🎯 Most Likely Fix (Do This First!)
+## 🎯 Good News: Database Connection is Already Hardcoded!
 
-### The Problem:
-Your **DATABASE_URL environment variable is probably NOT set in Vercel** or the database tables don't exist.
+Your app has the Neon database connection **hardcoded**, so you don't need to set DATABASE_URL in Vercel.
 
-### The Solution:
+### The Most Likely Problem:
 
-#### Step 1: Set DATABASE_URL in Vercel
+**Database tables are not initialized** in your Neon database.
 
-1. Go to [vercel.com](https://vercel.com)
-2. Click your **Skyway Suites** project
-3. Click **Settings** → **Environment Variables**
-4. Click **"Add New"**
-5. Enter:
-   - **Name:** `DATABASE_URL`
-   - **Value:** Your Neon connection string (from neon.tech)
-   - **Environments:** Check ALL boxes (Production, Preview, Development)
-6. Click **"Save"**
+## ✅ Quick Fix (Do This First!)
 
-#### Step 2: Get Your Neon Connection String
+### Step 1: Initialize Database Tables
 
 1. Go to [neon.tech](https://neon.tech)
 2. Click your project
-3. Click **"Connection Details"** or **"Dashboard"**
-4. Copy the **Connection String** (looks like this):
-   ```
-   postgresql://username:password@host.neon.tech/database?sslmode=require
-   ```
+3. Click **"SQL Editor"**
+4. Copy the entire content from `/backend-api/setup-database.sql`
+5. Paste it into the SQL Editor
+6. Click **"Run"**
+7. You should see success messages
 
-#### Step 3: Redeploy
+### Step 2: Verify Tables Exist
 
-1. In Vercel, go to **Deployments**
-2. Click **"..."** on the latest deployment
-3. Click **"Redeploy"**
-4. Wait 2-3 minutes
+Run this in Neon SQL Editor:
 
-#### Step 4: Initialize Database
+```sql
+SELECT table_name FROM information_schema.tables 
+WHERE table_schema = 'public'
+ORDER BY table_name;
+```
 
-1. Go to [neon.tech](https://neon.tech) → Your Project → **SQL Editor**
-2. Copy the entire content from `/backend-api/setup-database.sql`
-3. Paste it into the SQL Editor
-4. Click **"Run"**
-5. You should see "Success" messages
+Should show:
+- bookings
+- customers  
+- payments
+- properties
+- settings
+- users
+
+If you see all 6 tables, you're good! ✅
+
+### Step 3: Test Your App
+
+1. Go to your deployed app
+2. Login to admin panel
+3. Try creating a property
+4. Refresh the page
+5. Property still there? ✅ Success!
 
 ---
 
@@ -82,17 +86,7 @@ Common errors you'll see:
 
 ## 📊 Verify Your Setup
 
-### Check 1: Environment Variable Set?
-
-```bash
-# In Vercel Dashboard:
-# Settings → Environment Variables
-# Should see:
-#   DATABASE_URL = postgresql://...
-#   ✓ Production ✓ Preview ✓ Development
-```
-
-### Check 2: Database Tables Exist?
+### Check 1: Database Tables Exist?
 
 ```sql
 -- Run this in Neon SQL Editor:
@@ -108,7 +102,7 @@ WHERE table_schema = 'public';
 -- settings
 ```
 
-### Check 3: Latest Code Deployed?
+### Check 2: Latest Code Deployed?
 
 ```bash
 # In Vercel Dashboard:
@@ -158,9 +152,8 @@ Then read `/TROUBLESHOOTING_API_ERRORS.md` for detailed solutions.
 
 Before asking for help, verify:
 
-- [ ] `DATABASE_URL` is set in Vercel (all 3 environments checked)
 - [ ] Redeployed after adding `DATABASE_URL`
-- [ ] Ran `/backend-api/setup-database.sql` in Neon SQL Editor
+- [ ] Ran `/backend-api/setup-database.sql` in Neon
 - [ ] Vercel deployment shows "Ready" (not failed)
 - [ ] Latest git commit is deployed (check Vercel)
 - [ ] Cleared browser cache (Ctrl+Shift+R or Cmd+Shift+R)

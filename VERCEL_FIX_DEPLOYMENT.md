@@ -4,6 +4,8 @@
 
 Your deployment was failing because Vercel's **Hobby (free) plan limits you to 12 serverless functions**, and you had 15+ API endpoints in separate files.
 
+**BONUS:** Database connection is now **hardcoded** - no environment variable setup needed! 🎊
+
 ## ✅ What Was Fixed
 
 ### Before (15+ Functions - FAILED ❌)
@@ -59,19 +61,7 @@ git push origin main
 4. Wait 2-3 minutes for build to complete
 5. ✅ Deployment should succeed this time!
 
-### Step 3: Verify Environment Variables
-
-**CRITICAL:** Make sure `DATABASE_URL` is set!
-
-1. Go to your Vercel project
-2. Click **Settings** → **Environment Variables**
-3. Check that `DATABASE_URL` exists with your Neon connection string
-4. If missing, add it:
-   - **Name:** `DATABASE_URL`
-   - **Value:** Your Neon connection string
-   - **Environments:** Production, Preview, Development (all checked ✅)
-
-### Step 4: Test Your Deployment
+### Step 3: Test Your Deployment
 
 1. Visit your Vercel URL (e.g., `https://skyway-suites.vercel.app`)
 2. Open browser console (F12)
@@ -245,8 +235,7 @@ Your app is now optimized for Vercel's Hobby plan and ready to deploy with real 
 **Next Steps:**
 1. Push changes to GitHub ✅
 2. Wait for auto-deployment ✅
-3. Verify `DATABASE_URL` is set ✅
-4. Test your app ✅
-5. Start using real data! 🚀
+3. Test your app ✅
+4. Start using real data! 🚀
 
 Happy coding! 💻

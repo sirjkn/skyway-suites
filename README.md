@@ -52,6 +52,34 @@ A full-stack Airbnb-like property booking platform built with React, TypeScript,
 - Vercel account
 - Neon database account
 
+### 🎉 **NEW: Simplified Deployment**
+
+**Database connection is now hardcoded!** No environment variable setup needed.
+
+**Deploy in 3 steps:**
+
+1. **Push to GitHub**:
+```bash
+git add .
+git commit -m "Deploy Skyway Suites"
+git push origin main
+```
+
+2. **Wait for Vercel** (2-3 minutes)
+   - Visit [vercel.com](https://vercel.com)
+   - Auto-deploys from GitHub
+   - Wait for "Ready" status ✅
+
+3. **Initialize Database** (One-time)
+   - Visit [neon.tech](https://neon.tech)
+   - Open SQL Editor
+   - Run `/backend-api/setup-database.sql`
+   - Done! ✅
+
+**📖 Complete deployment guide:** [`/DEPLOY_NOW.md`](/DEPLOY_NOW.md)
+
+**🆘 Getting errors?** [`/FIX_API_ERRORS_QUICK.md`](/FIX_API_ERRORS_QUICK.md)
+
 ### Local Development
 
 **Note**: The app runs with **mock data** locally. To use the real Neon database, deploy to Vercel or run the backend API server.

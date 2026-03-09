@@ -5,8 +5,11 @@ let pool: Pool | null = null;
 
 export function getPool(): Pool {
   if (!pool) {
+    // Hardcoded Neon connection string (can be overridden by DATABASE_URL env var)
+    const defaultConnectionString = 'postgresql://neondb_owner:npg_aJ8wfM4RIeTQ@ep-floral-leaf-ag3dpaau-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+    
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_aJ8wfM4RIeTQ@ep-floral-leaf-ag3dpaau-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require',
+      connectionString: process.env.DATABASE_URL || defaultConnectionString,
       ssl: {
         rejectUnauthorized: false
       },
