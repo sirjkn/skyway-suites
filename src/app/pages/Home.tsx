@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { MapPin, Calendar, Users } from 'lucide-react';
+import { MapPin, Calendar, Users, Shield, Star, Clock, DollarSign } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useEffect, useState } from 'react';
 import { getProperties, Property, getHeroSettings } from '../lib/api';
@@ -46,7 +46,7 @@ export function Home() {
             <h2 className="text-3xl mb-4">Why Choose Skyway Suites?</h2>
             <p className="text-gray-600">Experience the best in vacation rentals</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="text-center p-6">
               <div className="w-16 h-16 bg-[#E8E3DB] rounded-full flex items-center justify-center mx-auto mb-4">
                 <MapPin className="h-8 w-8 text-[#6B7C3C]" />
@@ -58,11 +58,11 @@ export function Home() {
             </div>
             <div className="text-center p-6">
               <div className="w-16 h-16 bg-[#E8E3DB] rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-[#6B7C3C]" />
+                <Shield className="h-8 w-8 text-[#6B7C3C]" />
               </div>
-              <h3 className="text-xl mb-2">Verified Hosts</h3>
+              <h3 className="text-xl mb-2">Secure Payments</h3>
               <p className="text-gray-600">
-                All our hosts are carefully vetted for your peace of mind
+                Safe and encrypted payment processing for your peace of mind
               </p>
             </div>
             <div className="text-center p-6">
@@ -72,6 +72,33 @@ export function Home() {
               <h3 className="text-xl mb-2">Easy Booking</h3>
               <p className="text-gray-600">
                 Simple and secure booking process with instant confirmation
+              </p>
+            </div>
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-[#E8E3DB] rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-[#6B7C3C]" />
+              </div>
+              <h3 className="text-xl mb-2">Quality Guaranteed</h3>
+              <p className="text-gray-600">
+                Every property meets our high standards for cleanliness and comfort
+              </p>
+            </div>
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-[#E8E3DB] rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-8 w-8 text-[#6B7C3C]" />
+              </div>
+              <h3 className="text-xl mb-2">24/7 Support</h3>
+              <p className="text-gray-600">
+                Round-the-clock customer service to assist you anytime
+              </p>
+            </div>
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-[#E8E3DB] rounded-full flex items-center justify-center mx-auto mb-4">
+                <DollarSign className="h-8 w-8 text-[#6B7C3C]" />
+              </div>
+              <h3 className="text-xl mb-2">Best Price Match</h3>
+              <p className="text-gray-600">
+                Competitive pricing with no hidden fees or surprise charges
               </p>
             </div>
           </div>

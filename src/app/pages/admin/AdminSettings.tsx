@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Save, Bell, Users as UsersIcon, Settings as SettingsIcon, Image } from 'lucide-react';
+import { Save, Bell, Users as UsersIcon, Settings as SettingsIcon, Image, Mail, MessageCircle, CheckCircle } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import * as Tabs from '@radix-ui/react-tabs';
+import * as Select from '@radix-ui/react-select';
 import { toast } from 'sonner';
 import { getHeroSettings, updateHeroSettings } from '../../lib/api';
 
@@ -11,6 +12,26 @@ export function AdminSettings() {
   const [activeTab, setActiveTab] = useState('general');
   const [heroBackgroundUrl, setHeroBackgroundUrl] = useState('');
   const [isLoadingHero, setIsLoadingHero] = useState(true);
+
+  // Email Integration State
+  const [emailProvider, setEmailProvider] = useState('sendgrid');
+  const [emailApiKey, setEmailApiKey] = useState('');
+  const [emailFromAddress, setEmailFromAddress] = useState('');
+  const [emailFromName, setEmailFromName] = useState('Skyway Suites');
+  
+  // WhatsApp Integration State
+  const [whatsappProvider, setWhatsappProvider] = useState('twilio');
+  const [whatsappAccountSid, setWhatsappAccountSid] = useState('');
+  const [whatsappAuthToken, setWhatsappAuthToken] = useState('');
+  const [whatsappFromNumber, setWhatsappFromNumber] = useState('');
+  const [wesendrApiKey, setWesendrApiKey] = useState('');
+  
+  // Notification Actions State
+  const [notificationActions, setNotificationActions] = useState({
+    accountCreated: { email: true, whatsapp: true },
+    bookingCreated: { email: true, whatsapp: true },
+    bookingConfirmed: { email: true, whatsapp: true },
+  });
 
   useEffect(() => {
     loadHeroSettings();
@@ -90,13 +111,42 @@ export function AdminSettings() {
 
         {/* General Settings */}
         <Tabs.Content value="general">
-          <div className="grid gap-6 max-w-2xl">
+          <div className="grid gap-4 max-w-2xl">
             <Card>
-              <CardHeader>
-                <CardTitle>Business Information</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Hero Background</CardTitle>
+                <CardDescription>Set the background image for the homepage hero section</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <label className="block text-sm mb-1.5">Background Image URL</label>
+                  <Input 
+                    value={heroBackgroundUrl}
+                    onChange={(e) => setHeroBackgroundUrl(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+                <div className="p-3 bg-blue-50 rounded-md text-xs">
+                  <p className="mb-1.5"><strong>Upload an image:</strong></p>
+                  <ol className="list-decimal list-inside space-y-0.5 text-gray-700">
+                    <li>Upload to <a href="https://imgur.com" target="_blank" className="text-blue-600 hover:underline">Imgur</a> or <a href="https://cloudinary.com" target="_blank" className="text-blue-600 hover:underline">Cloudinary</a></li>
+                    <li>Copy the image URL</li>
+                    <li>Paste it above and save</li>
+                  </ol>
+                </div>
+                <Button onClick={handleSaveHeroBackground} size="sm">
+                  <Save className="h-3.5 w-3.5 mr-2" />
+                  Save Background
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Business Information</CardTitle>
                 <CardDescription>Update your business details</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 <div>
                   <label className="block text-sm mb-2">Company Name</label>
                   <Input defaultValue="Skyway Suites" />
@@ -121,8 +171,8 @@ export function AdminSettings() {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Database Connection</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Database Connection</CardTitle>
                 <CardDescription>Neon database configuration</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -151,8 +201,8 @@ export function AdminSettings() {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Booking Settings</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Booking Settings</CardTitle>
                 <CardDescription>Configure booking rules and policies</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -174,100 +224,70 @@ export function AdminSettings() {
                 </Button>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Hero Background</CardTitle>
-                <CardDescription>Set the background image for the homepage hero section</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm mb-2">Background Image URL</label>
-                  <Input
-                    type="text"
-                    value={heroBackgroundUrl}
-                    onChange={(e) => setHeroBackgroundUrl(e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-                <div className="p-4 bg-blue-50 rounded-md text-sm">
-                  <p className="mb-2"><strong>Upload an image:</strong></p>
-                  <ol className="list-decimal list-inside space-y-1 text-gray-700">
-                    <li>Upload an image to a hosting service (e.g., Imgur, Cloudinary)</li>
-                    <li>Copy the image URL</li>
-                    <li>Paste it above and save</li>
-                  </ol>
-                </div>
-                <Button onClick={handleSaveHeroBackground} disabled={isLoadingHero}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Background
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </Tabs.Content>
 
         {/* Users & Roles */}
         <Tabs.Content value="users">
-          <div className="grid gap-6 max-w-3xl">
+          <div className="grid gap-4 max-w-3xl">
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>Admin Users</CardTitle>
+                    <CardTitle className="text-lg">Admin Users</CardTitle>
                     <CardDescription>Manage admin access and permissions</CardDescription>
                   </div>
-                  <Button>
-                    <UsersIcon className="h-4 w-4 mr-2" />
+                  <Button size="sm">
+                    <UsersIcon className="h-3.5 w-3.5 mr-2" />
                     Add User
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-4">Name</th>
-                        <th className="text-left p-4">Email</th>
-                        <th className="text-left p-4">Role</th>
-                        <th className="text-left p-4">Status</th>
-                        <th className="text-left p-4">Actions</th>
+                    <thead className="bg-gray-50">
+                      <tr className="border-b text-sm">
+                        <th className="text-left py-2 px-3 font-medium">Name</th>
+                        <th className="text-left py-2 px-3 font-medium">Email</th>
+                        <th className="text-left py-2 px-3 font-medium">Role</th>
+                        <th className="text-left py-2 px-3 font-medium">Status</th>
+                        <th className="text-left py-2 px-3 font-medium">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b hover:bg-gray-50">
-                        <td className="p-4">John Admin</td>
-                        <td className="p-4">admin@skywaysuites.com</td>
-                        <td className="p-4">
-                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">
+                      <tr className="border-b hover:bg-gray-50 text-sm">
+                        <td className="py-2 px-3">John Admin</td>
+                        <td className="py-2 px-3 text-gray-600">admin@skywaysuites.com</td>
+                        <td className="py-2 px-3">
+                          <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
                             Super Admin
                           </span>
                         </td>
-                        <td className="p-4">
-                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                        <td className="py-2 px-3">
+                          <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
                             Active
                           </span>
                         </td>
-                        <td className="p-4">
-                          <Button variant="outline" size="sm">Edit</Button>
+                        <td className="py-2 px-3">
+                          <Button variant="outline" size="sm" className="h-7 text-xs">Edit</Button>
                         </td>
                       </tr>
-                      <tr className="border-b hover:bg-gray-50">
-                        <td className="p-4">Sarah Manager</td>
-                        <td className="p-4">sarah@skywaysuites.com</td>
-                        <td className="p-4">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                      <tr className="border-b hover:bg-gray-50 text-sm">
+                        <td className="py-2 px-3">Sarah Manager</td>
+                        <td className="py-2 px-3 text-gray-600">sarah@skywaysuites.com</td>
+                        <td className="py-2 px-3">
+                          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
                             Manager
                           </span>
                         </td>
-                        <td className="p-4">
-                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                        <td className="py-2 px-3">
+                          <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
                             Active
                           </span>
                         </td>
-                        <td className="p-4">
-                          <Button variant="outline" size="sm">Edit</Button>
+                        <td className="py-2 px-3">
+                          <Button variant="outline" size="sm" className="h-7 text-xs">Edit</Button>
                         </td>
                       </tr>
                     </tbody>
@@ -277,15 +297,15 @@ export function AdminSettings() {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Role Permissions</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Role Permissions</CardTitle>
                 <CardDescription>Define what each role can access</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 border rounded-lg">
-                    <div className="font-semibold mb-3">Super Admin</div>
-                    <div className="space-y-2 text-sm">
+                <div className="space-y-3">
+                  <div className="p-3 border rounded-lg">
+                    <div className="font-semibold mb-2 text-sm">Super Admin</div>
+                    <div className="space-y-1.5 text-sm">
                       <label className="flex items-center gap-2">
                         <input type="checkbox" defaultChecked className="rounded" />
                         Manage Properties
@@ -308,8 +328,8 @@ export function AdminSettings() {
                       </label>
                     </div>
                   </div>
-                  <Button onClick={() => toast.success('Permissions updated!')}>
-                    <Save className="h-4 w-4 mr-2" />
+                  <Button onClick={() => toast.success('Permissions updated!')} size="sm">
+                    <Save className="h-3.5 w-3.5 mr-2" />
                     Save Permissions
                   </Button>
                 </div>
@@ -323,61 +343,279 @@ export function AdminSettings() {
           <div className="grid gap-6 max-w-2xl">
             <Card>
               <CardHeader>
-                <CardTitle>Email Notifications</CardTitle>
-                <CardDescription>Configure email notification preferences</CardDescription>
+                <CardTitle>Email Integration</CardTitle>
+                <CardDescription>Configure email service for sending automated emails</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <label className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <div>
-                    <div className="font-semibold">New Booking</div>
-                    <div className="text-sm text-gray-600">Get notified when a new booking is made</div>
-                  </div>
-                  <input type="checkbox" defaultChecked className="rounded" />
-                </label>
-                <label className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <div>
-                    <div className="font-semibold">Payment Received</div>
-                    <div className="text-sm text-gray-600">Get notified when a payment is completed</div>
-                  </div>
-                  <input type="checkbox" defaultChecked className="rounded" />
-                </label>
-                <label className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <div>
-                    <div className="font-semibold">Customer Messages</div>
-                    <div className="text-sm text-gray-600">Get notified when customers send messages</div>
-                  </div>
-                  <input type="checkbox" defaultChecked className="rounded" />
-                </label>
-                <label className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <div>
-                    <div className="font-semibold">Booking Cancellation</div>
-                    <div className="text-sm text-gray-600">Get notified when a booking is cancelled</div>
-                  </div>
-                  <input type="checkbox" defaultChecked className="rounded" />
-                </label>
-                <Button onClick={() => toast.success('Notification settings saved!')}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Preferences
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Email Provider</label>
+                  <select
+                    value={emailProvider}
+                    onChange={(e) => setEmailProvider(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  >
+                    <option value="sendgrid">SendGrid</option>
+                    <option value="mailgun">Mailgun</option>
+                    <option value="smtp">Custom SMTP</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">API Key</label>
+                  <Input 
+                    type="password"
+                    value={emailApiKey}
+                    onChange={(e) => setEmailApiKey(e.target.value)}
+                    placeholder="Your API Key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">From Email Address</label>
+                  <Input 
+                    type="email"
+                    value={emailFromAddress}
+                    onChange={(e) => setEmailFromAddress(e.target.value)}
+                    placeholder="noreply@skywaysuites.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">From Name</label>
+                  <Input 
+                    value={emailFromName}
+                    onChange={(e) => setEmailFromName(e.target.value)}
+                    placeholder="Skyway Suites"
+                  />
+                </div>
+                <div className="p-3 bg-blue-50 rounded-md text-xs">
+                  <p className="mb-1.5"><strong>Setup Instructions:</strong></p>
+                  <ol className="list-decimal list-inside space-y-0.5 text-gray-700">
+                    <li>Create an account with your chosen email provider</li>
+                    <li>Generate an API key from their dashboard</li>
+                    <li>Paste your API key above</li>
+                    <li>Configure your sending domain and verify it</li>
+                  </ol>
+                </div>
+                <Button onClick={() => toast.success('Email integration saved!')}>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Save Email Settings
                 </Button>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Push Notifications</CardTitle>
-                <CardDescription>Configure push notification settings</CardDescription>
+                <CardTitle>WhatsApp Integration</CardTitle>
+                <CardDescription>Configure WhatsApp service for sending messages</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <label className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <div>
-                    <div className="font-semibold">Enable Push Notifications</div>
-                    <div className="text-sm text-gray-600">Receive real-time notifications</div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">WhatsApp Provider</label>
+                  <select
+                    value={whatsappProvider}
+                    onChange={(e) => setWhatsappProvider(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  >
+                    <option value="twilio">Twilio</option>
+                    <option value="wesendr">Wesendr API</option>
+                  </select>
+                </div>
+                
+                {whatsappProvider === 'twilio' && (
+                  <>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Twilio Account SID</label>
+                      <Input 
+                        value={whatsappAccountSid}
+                        onChange={(e) => setWhatsappAccountSid(e.target.value)}
+                        placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Twilio Auth Token</label>
+                      <Input 
+                        type="password"
+                        value={whatsappAuthToken}
+                        onChange={(e) => setWhatsappAuthToken(e.target.value)}
+                        placeholder="Your Auth Token"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">WhatsApp From Number</label>
+                      <Input 
+                        value={whatsappFromNumber}
+                        onChange={(e) => setWhatsappFromNumber(e.target.value)}
+                        placeholder="+1234567890"
+                      />
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-md text-xs">
+                      <p className="mb-1.5"><strong>Twilio Setup:</strong></p>
+                      <ol className="list-decimal list-inside space-y-0.5 text-gray-700">
+                        <li>Create a Twilio account at twilio.com</li>
+                        <li>Get your Account SID and Auth Token</li>
+                        <li>Set up WhatsApp Sandbox or get approved number</li>
+                        <li>Enter your credentials above</li>
+                      </ol>
+                    </div>
+                  </>
+                )}
+                
+                {whatsappProvider === 'wesendr' && (
+                  <>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Wesendr API Key</label>
+                      <Input 
+                        type="password"
+                        value={wesendrApiKey}
+                        onChange={(e) => setWesendrApiKey(e.target.value)}
+                        placeholder="Your Wesendr API Key"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">WhatsApp From Number</label>
+                      <Input 
+                        value={whatsappFromNumber}
+                        onChange={(e) => setWhatsappFromNumber(e.target.value)}
+                        placeholder="+1234567890"
+                      />
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-md text-xs">
+                      <p className="mb-1.5"><strong>Wesendr Setup:</strong></p>
+                      <ol className="list-decimal list-inside space-y-0.5 text-gray-700">
+                        <li>Create a Wesendr account</li>
+                        <li>Generate an API key from dashboard</li>
+                        <li>Connect your WhatsApp Business account</li>
+                        <li>Enter your API key above</li>
+                      </ol>
+                    </div>
+                  </>
+                )}
+                
+                <Button onClick={() => toast.success('WhatsApp integration saved!')}>
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Save WhatsApp Settings
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Notification Actions</CardTitle>
+                <CardDescription>Configure automatic notifications for customer actions</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="font-semibold">Account Created</div>
+                      <div className="text-sm text-gray-600">Welcome new customers to your platform</div>
+                    </div>
                   </div>
-                  <input type="checkbox" className="rounded" />
-                </label>
-                <Button onClick={() => toast.success('Push notification settings saved!')}>
+                  <div className="flex gap-6 ml-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={notificationActions.accountCreated.email}
+                        onChange={(e) => setNotificationActions({
+                          ...notificationActions,
+                          accountCreated: { ...notificationActions.accountCreated, email: e.target.checked }
+                        })}
+                        className="rounded"
+                      />
+                      <Mail className="h-4 w-4 text-gray-600" />
+                      <span className="text-sm">Email</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={notificationActions.accountCreated.whatsapp}
+                        onChange={(e) => setNotificationActions({
+                          ...notificationActions,
+                          accountCreated: { ...notificationActions.accountCreated, whatsapp: e.target.checked }
+                        })}
+                        className="rounded"
+                      />
+                      <MessageCircle className="h-4 w-4 text-gray-600" />
+                      <span className="text-sm">WhatsApp</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="font-semibold">Booking Created</div>
+                      <div className="text-sm text-gray-600">Notify customer and admin when a new booking is made</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-6 ml-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={notificationActions.bookingCreated.email}
+                        onChange={(e) => setNotificationActions({
+                          ...notificationActions,
+                          bookingCreated: { ...notificationActions.bookingCreated, email: e.target.checked }
+                        })}
+                        className="rounded"
+                      />
+                      <Mail className="h-4 w-4 text-gray-600" />
+                      <span className="text-sm">Email</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={notificationActions.bookingCreated.whatsapp}
+                        onChange={(e) => setNotificationActions({
+                          ...notificationActions,
+                          bookingCreated: { ...notificationActions.bookingCreated, whatsapp: e.target.checked }
+                        })}
+                        className="rounded"
+                      />
+                      <MessageCircle className="h-4 w-4 text-gray-600" />
+                      <span className="text-sm">WhatsApp</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="font-semibold">Booking Confirmed</div>
+                      <div className="text-sm text-gray-600">Confirm booking details to customer after payment</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-6 ml-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={notificationActions.bookingConfirmed.email}
+                        onChange={(e) => setNotificationActions({
+                          ...notificationActions,
+                          bookingConfirmed: { ...notificationActions.bookingConfirmed, email: e.target.checked }
+                        })}
+                        className="rounded"
+                      />
+                      <Mail className="h-4 w-4 text-gray-600" />
+                      <span className="text-sm">Email</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={notificationActions.bookingConfirmed.whatsapp}
+                        onChange={(e) => setNotificationActions({
+                          ...notificationActions,
+                          bookingConfirmed: { ...notificationActions.bookingConfirmed, whatsapp: e.target.checked }
+                        })}
+                        className="rounded"
+                      />
+                      <MessageCircle className="h-4 w-4 text-gray-600" />
+                      <span className="text-sm">WhatsApp</span>
+                    </label>
+                  </div>
+                </div>
+
+                <Button onClick={() => toast.success('Notification actions saved!')}>
                   <Save className="h-4 w-4 mr-2" />
-                  Save Settings
+                  Save Notification Actions
                 </Button>
               </CardContent>
             </Card>

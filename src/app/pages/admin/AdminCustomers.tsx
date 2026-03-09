@@ -67,25 +67,25 @@ export function AdminCustomers() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
-          <CardContent className="p-6">
-            <div className="text-sm text-gray-600 mb-1">Total Customers</div>
-            <div className="text-2xl font-semibold">{customers.length}</div>
+          <CardContent className="p-3">
+            <div className="text-xs text-gray-600 mb-0.5">Total Customers</div>
+            <div className="text-xl font-semibold">{customers.length}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
-            <div className="text-sm text-gray-600 mb-1">Total Bookings</div>
-            <div className="text-2xl font-semibold">
+          <CardContent className="p-3">
+            <div className="text-xs text-gray-600 mb-0.5">Total Bookings</div>
+            <div className="text-xl font-semibold">
               {customers.reduce((sum, c) => sum + c.totalBookings, 0)}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
-            <div className="text-sm text-gray-600 mb-1">New This Month</div>
-            <div className="text-2xl font-semibold text-green-600">
+          <CardContent className="p-3">
+            <div className="text-xs text-gray-600 mb-0.5">New This Month</div>
+            <div className="text-xl font-semibold text-green-600">
               {customers.filter(c => {
                 const createdDate = new Date(c.createdAt);
                 const now = new Date();
@@ -102,55 +102,55 @@ export function AdminCustomers() {
         <CardHeader>
           <CardTitle>All Customers</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-4">Name</th>
-                  <th className="text-left p-4">Email</th>
-                  <th className="text-left p-4">Phone</th>
-                  <th className="text-left p-4">Total Bookings</th>
-                  <th className="text-left p-4">Member Since</th>
-                  <th className="text-left p-4">Actions</th>
+              <thead className="bg-gray-50">
+                <tr className="border-b text-sm">
+                  <th className="text-left py-2 px-3 font-medium">Name</th>
+                  <th className="text-left py-2 px-3 font-medium">Email</th>
+                  <th className="text-left py-2 px-3 font-medium">Phone</th>
+                  <th className="text-left py-2 px-3 font-medium">Bookings</th>
+                  <th className="text-left py-2 px-3 font-medium">Member Since</th>
+                  <th className="text-left py-2 px-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {customers.map((customer) => (
-                  <tr key={customer.id} className="border-b hover:bg-gray-50">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <span className="font-semibold text-blue-600">
+                  <tr key={customer.id} className="border-b hover:bg-gray-50 text-sm">
+                    <td className="py-2 px-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-semibold text-blue-600">
                             {customer.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
-                        <div className="font-semibold">{customer.name}</div>
+                        <div className="font-medium">{customer.name}</div>
                       </div>
                     </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-gray-400" />
+                    <td className="py-2 px-3">
+                      <div className="flex items-center gap-1.5 text-gray-600">
+                        <Mail className="h-3.5 w-3.5 text-gray-400" />
                         {customer.email}
                       </div>
                     </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-400" />
+                    <td className="py-2 px-3">
+                      <div className="flex items-center gap-1.5 text-gray-600">
+                        <Phone className="h-3.5 w-3.5 text-gray-400" />
                         {customer.phone}
                       </div>
                     </td>
-                    <td className="p-4">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm">
+                    <td className="py-2 px-3">
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
                         {customer.totalBookings}
                       </span>
                     </td>
-                    <td className="p-4 text-gray-600">
+                    <td className="py-2 px-3 text-gray-600">
                       {new Date(customer.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="p-4">
-                      <Button variant="outline" size="sm">
-                        View Details
+                    <td className="py-2 px-3">
+                      <Button variant="outline" size="sm" className="h-7 text-xs">
+                        View
                       </Button>
                     </td>
                   </tr>

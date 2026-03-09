@@ -75,43 +75,43 @@ export function AdminPayments() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm text-gray-600 mb-1">Total Revenue</div>
-                <div className="text-2xl font-semibold text-green-600">${totalRevenue}</div>
+                <div className="text-xs text-gray-600 mb-0.5">Total Revenue</div>
+                <div className="text-xl font-semibold text-green-600">${totalRevenue}</div>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-green-600" />
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <DollarSign className="h-5 w-5 text-green-600" />
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm text-gray-600 mb-1">Pending</div>
-                <div className="text-2xl font-semibold text-yellow-600">${pendingAmount}</div>
+                <div className="text-xs text-gray-600 mb-0.5">Pending</div>
+                <div className="text-xl font-semibold text-yellow-600">${pendingAmount}</div>
               </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                <CreditCard className="h-6 w-6 text-yellow-600" />
+              <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                <CreditCard className="h-5 w-5 text-yellow-600" />
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
-            <div className="text-sm text-gray-600 mb-1">Total Payments</div>
-            <div className="text-2xl font-semibold">{payments.length}</div>
+          <CardContent className="p-3">
+            <div className="text-xs text-gray-600 mb-0.5">Total Payments</div>
+            <div className="text-xl font-semibold">{payments.length}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
-            <div className="text-sm text-gray-600 mb-1">Paid</div>
-            <div className="text-2xl font-semibold text-green-600">
+          <CardContent className="p-3">
+            <div className="text-xs text-gray-600 mb-0.5">Paid</div>
+            <div className="text-xl font-semibold text-green-600">
               {payments.filter(p => p.status === 'paid').length}
             </div>
           </CardContent>
@@ -123,39 +123,39 @@ export function AdminPayments() {
         <CardHeader>
           <CardTitle>All Payments</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-4">Payment ID</th>
-                  <th className="text-left p-4">Booking ID</th>
-                  <th className="text-left p-4">Customer</th>
-                  <th className="text-left p-4">Amount</th>
-                  <th className="text-left p-4">Method</th>
-                  <th className="text-left p-4">Status</th>
-                  <th className="text-left p-4">Date</th>
+              <thead className="bg-gray-50">
+                <tr className="border-b text-sm">
+                  <th className="text-left py-2 px-3 font-medium">Payment ID</th>
+                  <th className="text-left py-2 px-3 font-medium">Booking ID</th>
+                  <th className="text-left py-2 px-3 font-medium">Customer</th>
+                  <th className="text-left py-2 px-3 font-medium">Amount</th>
+                  <th className="text-left py-2 px-3 font-medium">Method</th>
+                  <th className="text-left py-2 px-3 font-medium">Status</th>
+                  <th className="text-left py-2 px-3 font-medium">Date</th>
                 </tr>
               </thead>
               <tbody>
                 {payments.map((payment) => (
-                  <tr key={payment.id} className="border-b hover:bg-gray-50">
-                    <td className="p-4 font-mono text-sm">#{payment.id}</td>
-                    <td className="p-4 font-mono text-sm">#{payment.bookingId}</td>
-                    <td className="p-4">{getCustomerName(payment.customerId)}</td>
-                    <td className="p-4 font-semibold text-green-600">${payment.amount}</td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4 text-gray-400" />
+                  <tr key={payment.id} className="border-b hover:bg-gray-50 text-sm">
+                    <td className="py-2 px-3 font-mono text-xs">#{payment.id.slice(0, 8)}</td>
+                    <td className="py-2 px-3 font-mono text-xs">#{payment.bookingId.slice(0, 8)}</td>
+                    <td className="py-2 px-3">{getCustomerName(payment.customerId)}</td>
+                    <td className="py-2 px-3 font-semibold text-green-600">${payment.amount}</td>
+                    <td className="py-2 px-3">
+                      <div className="flex items-center gap-1.5 text-gray-600">
+                        <CreditCard className="h-3.5 w-3.5 text-gray-400" />
                         {payment.paymentMethod}
                       </div>
                     </td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded text-xs ${getStatusColor(payment.status)}`}>
+                    <td className="py-2 px-3">
+                      <span className={`px-2 py-0.5 rounded text-xs ${getStatusColor(payment.status)}`}>
                         {payment.status}
                       </span>
                     </td>
-                    <td className="p-4 text-gray-600">
+                    <td className="py-2 px-3 text-gray-600">
                       {new Date(payment.createdAt).toLocaleDateString()}
                     </td>
                   </tr>

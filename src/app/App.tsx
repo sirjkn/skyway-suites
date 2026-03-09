@@ -6,7 +6,14 @@ export default function App() {
   return (
     <>
       <RouterProvider router={router} />
-      <Toaster position="top-right" />
+      <Toaster 
+        position="bottom-right" 
+        toastOptions={{
+          classNames: {
+            success: 'bg-green-50 border-green-200 text-green-900',
+          },
+        }}
+      />
     </>
   );
 }
