@@ -28,8 +28,11 @@ export function CreateAccount() {
       toast.success('Account created successfully!');
       navigate('/');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create account. Please try again.';
-      toast.error(errorMessage);
+      // Only show error if it's not a development mode fallback
+      if (error instanceof Error && error.message !== 'API_NOT_AVAILABLE') {
+        const errorMessage = error.message || 'Failed to create account. Please try again.';
+        toast.error(errorMessage);
+      }
       console.error('Signup error:', error);
     }
   };

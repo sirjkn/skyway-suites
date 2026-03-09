@@ -11,7 +11,7 @@ export function DevModeBanner() {
       <div className="flex items-center justify-center gap-2">
         <AlertCircle className="w-4 h-4" />
         <span>
-          <strong>Development Mode:</strong> Using mock data. Deploy to Vercel to connect to your Neon database.
+          <strong>Development Mode:</strong> Using mock data. Any email works as login (use "admin@" for admin access). Deploy to Vercel for real database.
         </span>
       </div>
     </div>

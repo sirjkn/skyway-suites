@@ -20,8 +20,11 @@ export function Login() {
       toast.success('Login successful!');
       navigate('/');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please check your credentials.';
-      toast.error(errorMessage);
+      // Only show error if it's not a development mode fallback
+      if (error instanceof Error && error.message !== 'API_NOT_AVAILABLE') {
+        const errorMessage = error.message || 'Login failed. Please check your credentials.';
+        toast.error(errorMessage);
+      }
       console.error('Login error:', error);
     }
   };
@@ -75,9 +78,10 @@ export function Login() {
           </div>
 
           <div className="mt-4 p-3 bg-[#F5F3F0] rounded-md text-sm text-gray-600">
-            <p className="mb-1"><strong>Demo account:</strong></p>
-            <p>Email: admin@skywaysuites.com</p>
-            <p>Password: admin123</p>
+            <p className="mb-1"><strong>Development Mode:</strong></p>
+            <p>✅ Any email works for login!</p>
+            <p>✅ Use email with "admin" for admin access</p>
+            <p className="mt-2 text-xs">Real authentication works after deploying to Vercel</p>
           </div>
         </CardContent>
       </Card>
