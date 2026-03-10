@@ -86,10 +86,12 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
       cache: 'no-cache'
     });
     
-    // Check if response is HTML (error page)
+    // Check if response is HTML (error page) - API not available
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('text/html')) {
-      throw new Error('API not available - received HTML instead of JSON');
+      // Silently return empty array or null - API is not available in dev mode
+      console.info('API not available - using empty data');
+      return null;
     }
     
     if (!response.ok) {
@@ -99,34 +101,41 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     
     return response.json();
   } catch (error) {
-    // If it's a network error or API not available, throw a more specific error
+    // If it's a network error or API not available, return null silently
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error('API not available - please ensure the server is running');
+      console.info('API not available - using empty data');
+      return null;
     }
-    throw error;
+    // Only throw if it's an actual error from the API (not a connection issue)
+    if (error instanceof Error && !error.message.includes('API not available')) {
+      throw error;
+    }
+    // For API not available, return null
+    return null;
   }
 }
 
 // Properties API
 export async function getProperties(): Promise<Property[]> {
-  return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties`);
+  const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=properties`);
+  return result || [];
 }
 
-export async function getPropertyById(id: string): Promise<Property> {
+export async function getPropertyById(id: string): Promise<Property | null> {
   return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties&id=${id}`);
 }
 
 // Alias for backward compatibility
 export const getProperty = getPropertyById;
 
-export async function createProperty(property: Omit<Property, 'id'>): Promise<Property> {
+export async function createProperty(property: Omit<Property, 'id'>): Promise<Property | null> {
   return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties`, {
     method: 'POST',
     body: JSON.stringify(property),
   });
 }
 
-export async function updateProperty(id: string, property: Partial<Property>): Promise<Property> {
+export async function updateProperty(id: string, property: Partial<Property>): Promise<Property | null> {
   return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties&id=${id}`, {
     method: 'PUT',
     body: JSON.stringify(property),
@@ -141,7 +150,8 @@ export async function deleteProperty(id: string): Promise<void> {
 
 // Bookings API
 export async function getBookings(): Promise<Booking[]> {
-  return await fetchWithAuth(`${API_BASE_URL}?endpoint=bookings`);
+  const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=bookings`);
+  return result || [];
 }
 
 export async function createBooking(booking: Omit<Booking, 'id' | 'createdAt'>): Promise<Booking> {
@@ -173,7 +183,8 @@ export async function deleteBooking(id: string): Promise<void> {
 
 // Customers API
 export async function getCustomers(): Promise<Customer[]> {
-  return await fetchWithAuth(`${API_BASE_URL}?endpoint=customers`);
+  const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=customers`);
+  return result || [];
 }
 
 export async function createCustomer(customer: Omit<Customer, 'id' | 'createdAt' | 'totalBookings'>): Promise<Customer> {
@@ -198,7 +209,8 @@ export async function deleteCustomer(id: string): Promise<void> {
 
 // Payments API
 export async function getPayments(): Promise<Payment[]> {
-  return await fetchWithAuth(`${API_BASE_URL}?endpoint=payments`);
+  const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=payments`);
+  return result || [];
 }
 
 export async function createPayment(payment: Omit<Payment, 'id' | 'createdAt'>): Promise<Payment> {
@@ -323,7 +335,8 @@ export function generateICalUrl(propertyId: string): string {
 
 // Users API
 export async function getUsers(): Promise<User[]> {
-  return await fetchWithAuth(`${API_BASE_URL}?endpoint=users`);
+  const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=users`);
+  return result || [];
 }
 
 export async function createUser(user: { email: string; password: string; name: string; role: 'admin' | 'customer' }): Promise<User> {
