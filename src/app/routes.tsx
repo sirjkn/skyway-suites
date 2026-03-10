@@ -14,12 +14,15 @@ import { AdminBookings } from "./pages/admin/AdminBookings";
 import { AdminCustomers } from "./pages/admin/AdminCustomers";
 import { AdminPayments } from "./pages/admin/AdminPayments";
 import { AdminSettings } from "./pages/admin/AdminSettings";
+import { MaintenanceWrapper } from "./components/MaintenanceWrapper";
 
 // Root component that provides auth context to all routes
 function Root() {
   return (
     <AuthProvider>
-      <Outlet />
+      <MaintenanceWrapper>
+        <Outlet />
+      </MaintenanceWrapper>
     </AuthProvider>
   );
 }

@@ -118,11 +118,11 @@ INSERT INTO users (email, name, password_hash, role) VALUES
 
 -- Insert sample properties
 INSERT INTO properties (title, description, price, location, bedrooms, bathrooms, guests, category, image, amenities) VALUES
-('Luxury Nairobi Penthouse', 'Stunning penthouse in Westlands with panoramic city views and modern amenities.', 250.00, 'Westlands, Nairobi', 3, 2, 6, 'Penthouse', 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800', ARRAY['WiFi', 'Pool', 'Gym', 'Parking', 'Security', 'Kitchen']),
-('Karen Villa', 'Spacious villa in the serene Karen suburb, perfect for families.', 350.00, 'Karen, Nairobi', 4, 3, 8, 'Villa', 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800', ARRAY['WiFi', 'Garden', 'BBQ Area', 'Parking', 'Security', 'Kitchen']),
-('Kilimani Apartment', 'Modern 2-bedroom apartment in the heart of Kilimani.', 150.00, 'Kilimani, Nairobi', 2, 2, 4, 'Apartment', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800', ARRAY['WiFi', 'Parking', 'Security', 'Kitchen', 'Balcony']),
-('Runda Estate Home', 'Exclusive home in the prestigious Runda Estate.', 500.00, 'Runda, Nairobi', 5, 4, 10, 'Home', 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800', ARRAY['WiFi', 'Pool', 'Garden', 'Security', 'Kitchen', 'Staff Quarters']),
-('Lavington Townhouse', 'Beautiful townhouse in quiet Lavington neighborhood.', 200.00, 'Lavington, Nairobi', 3, 2, 6, 'Townhouse', 'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800', ARRAY['WiFi', 'Parking', 'Security', 'Kitchen', 'Garden']);
+('Luxury Nairobi Penthouse', 'Stunning penthouse in Westlands with panoramic city views and modern amenities.', 250.00, 'Westlands, Nairobi', 3, 2, 6, '3 Bedroom', 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800', ARRAY['WiFi', 'Pool', 'Gym', 'Parking', 'Security', 'Kitchen']),
+('Karen Villa', 'Spacious villa in the serene Karen suburb, perfect for families.', 350.00, 'Karen, Nairobi', 4, 3, 8, '3 Bedroom', 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800', ARRAY['WiFi', 'Garden', 'BBQ Area', 'Parking', 'Security', 'Kitchen']),
+('Kilimani Apartment', 'Modern 2-bedroom apartment in the heart of Kilimani.', 150.00, 'Kilimani, Nairobi', 2, 2, 4, '2 Bedroom', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800', ARRAY['WiFi', 'Parking', 'Security', 'Kitchen', 'Balcony']),
+('Runda Estate Home', 'Exclusive home in the prestigious Runda Estate.', 500.00, 'Runda, Nairobi', 5, 4, 10, '3 Bedroom', 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800', ARRAY['WiFi', 'Pool', 'Garden', 'Security', 'Kitchen', 'Staff Quarters']),
+('Lavington Townhouse', 'Beautiful townhouse in quiet Lavington neighborhood.', 200.00, 'Lavington, Nairobi', 3, 2, 6, '3 Bedroom', 'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800', ARRAY['WiFi', 'Parking', 'Security', 'Kitchen', 'Garden']);
 
 -- Insert sample customers
 INSERT INTO customers (name, email, phone) VALUES

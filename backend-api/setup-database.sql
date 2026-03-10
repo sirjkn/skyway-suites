@@ -114,11 +114,11 @@ INSERT INTO users (email, name, password_hash, role) VALUES
 
 -- Sample properties
 INSERT INTO properties (title, description, price, location, bedrooms, bathrooms, guests, category, image, amenities) VALUES
-('Luxury Downtown Apartment', 'Beautiful modern apartment in the heart of downtown with stunning city views.', 150.00, 'New York, NY', 2, 2, 4, 'Apartment', 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800', ARRAY['WiFi', 'Kitchen', 'Air Conditioning', 'TV', 'Workspace']),
-('Cozy Beach House', 'Relaxing beachfront property with private access to the beach.', 200.00, 'Malibu, CA', 3, 2, 6, 'Beach House', 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800', ARRAY['WiFi', 'Beach Access', 'BBQ Grill', 'Parking', 'Ocean View']),
-('Mountain Cabin Retreat', 'Secluded cabin in the mountains perfect for a peaceful getaway.', 120.00, 'Aspen, CO', 2, 1, 4, 'Cabin', 'https://images.unsplash.com/photo-1542718610-a1d656d1884c?w=800', ARRAY['Fireplace', 'Hiking Trails', 'Pet Friendly', 'Kitchen', 'Hot Tub']),
-('Urban Loft Studio', 'Modern loft in trendy neighborhood with industrial charm.', 95.00, 'Portland, OR', 1, 1, 2, 'Loft', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800', ARRAY['WiFi', 'Workspace', 'Full Kitchen', 'Gym Access']),
-('Lakefront Villa', 'Stunning villa with panoramic lake views and private dock.', 300.00, 'Lake Tahoe, NV', 4, 3, 8, 'Villa', 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800', ARRAY['Lake Access', 'Boat Dock', 'Fire Pit', 'Hot Tub', 'BBQ Grill']);
+('Luxury Downtown Apartment', 'Beautiful modern apartment in the heart of downtown with stunning city views.', 150.00, 'New York, NY', 2, 2, 4, '2 Bedroom', 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800', ARRAY['WiFi', 'Kitchen', 'Air Conditioning', 'TV', 'Workspace']),
+('Cozy Beach House', 'Relaxing beachfront property with private access to the beach.', 200.00, 'Malibu, CA', 3, 2, 6, '3 Bedroom', 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800', ARRAY['WiFi', 'Beach Access', 'BBQ Grill', 'Parking', 'Ocean View']),
+('Mountain Cabin Retreat', 'Secluded cabin in the mountains perfect for a peaceful getaway.', 120.00, 'Aspen, CO', 2, 1, 4, '2 Bedroom', 'https://images.unsplash.com/photo-1542718610-a1d656d1884c?w=800', ARRAY['Fireplace', 'Hiking Trails', 'Pet Friendly', 'Kitchen', 'Hot Tub']),
+('Urban Loft Studio', 'Modern loft in trendy neighborhood with industrial charm.', 95.00, 'Portland, OR', 1, 1, 2, 'Studio', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800', ARRAY['WiFi', 'Workspace', 'Full Kitchen', 'Gym Access']),
+('Lakefront Villa', 'Stunning villa with panoramic lake views and private dock.', 300.00, 'Lake Tahoe, NV', 4, 3, 8, '3 Bedroom', 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800', ARRAY['Lake Access', 'Boat Dock', 'Fire Pit', 'Hot Tub', 'BBQ Grill']);
 
 -- Sample customers
 INSERT INTO customers (name, email, phone) VALUES

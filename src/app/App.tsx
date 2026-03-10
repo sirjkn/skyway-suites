@@ -2,11 +2,10 @@ import { RouterProvider } from 'react-router';
 import { router } from './routes';
 import { Toaster } from 'sonner';
 import { DatabaseStatus } from './components/DatabaseStatus';
-import { MaintenanceWrapper } from './components/MaintenanceWrapper';
 
 export default function App() {
   return (
-    <MaintenanceWrapper>
+    <>
       <RouterProvider router={router} />
       <DatabaseStatus />
       <Toaster 
@@ -17,6 +16,6 @@ export default function App() {
           },
         }}
       />
-    </MaintenanceWrapper>
+    </>
   );
 }
