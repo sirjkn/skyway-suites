@@ -8,6 +8,7 @@ import { Input } from '../../components/ui/input';
 import { Combobox } from '../../components/ui/combobox';
 import { toast } from 'sonner';
 import * as Dialog from '@radix-ui/react-dialog';
+import { sendCustomerBookingConfirmation, sendAdminBookingNotification } from '../../lib/notificationService';
 
 export function AdminBookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -148,6 +149,38 @@ export function AdminBookings() {
 
       toast.success('Payment processed successfully!');
       
+      // Send notifications if payment is in full
+      const paymentAmount = parseFloat(paymentFormData.amount);
+      if (paymentAmount >= selectedBookingForPayment.totalPrice) {
+        // Find customer and property details
+        const customer = customers.find(c => c.id === selectedBookingForPayment.customerId);
+        const property = properties.find(p => p.id === selectedBookingForPayment.propertyId);
+        
+        if (customer && property) {
+          // Send customer confirmation
+          await sendCustomerBookingConfirmation({
+            customerName: customer.name,
+            customerPhone: customer.phone,
+            customerEmail: customer.email,
+            checkInDate: selectedBookingForPayment.checkIn,
+            checkOutDate: selectedBookingForPayment.checkOut,
+            propertyName: property.title,
+            totalPrice: selectedBookingForPayment.totalPrice,
+          });
+          
+          // Send admin notification
+          await sendAdminBookingNotification({
+            customerName: customer.name,
+            checkInDate: selectedBookingForPayment.checkIn,
+            checkOutDate: selectedBookingForPayment.checkOut,
+            propertyName: property.title,
+            totalPrice: selectedBookingForPayment.totalPrice,
+          });
+          
+          toast.success('Booking confirmation sent!');
+        }
+      }
+      
       // Reset and close modal
       setShowPaymentDialog(false);
       setSelectedBookingForPayment(null);
@@ -229,6 +262,14 @@ export function AdminBookings() {
       
       // Reload bookings to show the new one
       await loadBookings();
+
+      // Send notifications
+      const property = properties.find(p => p.id === newBooking.propertyId);
+      const customer = customers.find(c => c.id === newBooking.customerId);
+      if (property && customer) {
+        sendCustomerBookingConfirmation(customer.email, property.title, newBooking.checkIn, newBooking.checkOut, newBooking.totalPrice);
+        sendAdminBookingNotification(property.title, customer.name, newBooking.checkIn, newBooking.checkOut, newBooking.totalPrice);
+      }
     } catch (error) {
       console.error('Failed to create booking:', error);
       toast.error('Failed to create booking. Please try again.');

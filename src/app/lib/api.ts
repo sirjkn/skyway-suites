@@ -557,6 +557,28 @@ export interface CompanyInfo {
   address?: string;
 }
 
+export interface NotificationSettings {
+  // Email integration
+  emailProvider?: string;
+  emailApiKey?: string;
+  emailFromAddress?: string;
+  emailFromName?: string;
+  
+  // WhatsApp integration
+  whatsappProvider?: string;
+  whatsappAccountSid?: string;
+  whatsappAuthToken?: string;
+  whatsappFromNumber?: string;
+  wesendrApiKey?: string;
+  
+  // Notification actions
+  notificationActions?: {
+    accountCreated: { email: boolean; whatsapp: boolean };
+    bookingCreated: { email: boolean; whatsapp: boolean };
+    bookingConfirmed: { email: boolean; whatsapp: boolean };
+  };
+}
+
 export async function getMaintenanceSettings(): Promise<MaintenanceSettings | null> {
   try {
     return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings&action=maintenance`);
@@ -604,6 +626,64 @@ export async function updateCompanyInfo(info: CompanyInfo): Promise<CompanyInfo>
   }
   if (info.address !== undefined) {
     settingsArray.push({ category: 'company', key: 'address', value: info.address });
+  }
+  
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings`, {
+    method: 'PUT',
+    body: JSON.stringify(settingsArray),
+  });
+}
+
+// Notification Settings API
+export async function getNotificationSettings(): Promise<NotificationSettings | null> {
+  try {
+    return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings&action=category&category=notifications`);
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function updateNotificationSettings(settings: NotificationSettings): Promise<NotificationSettings> {
+  const settingsArray = [];
+  
+  // Email integration settings
+  if (settings.emailProvider !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'email_provider', value: settings.emailProvider });
+  }
+  if (settings.emailApiKey !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'email_api_key', value: settings.emailApiKey });
+  }
+  if (settings.emailFromAddress !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'email_from_address', value: settings.emailFromAddress });
+  }
+  if (settings.emailFromName !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'email_from_name', value: settings.emailFromName });
+  }
+  
+  // WhatsApp integration settings
+  if (settings.whatsappProvider !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'whatsapp_provider', value: settings.whatsappProvider });
+  }
+  if (settings.whatsappAccountSid !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'whatsapp_account_sid', value: settings.whatsappAccountSid });
+  }
+  if (settings.whatsappAuthToken !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'whatsapp_auth_token', value: settings.whatsappAuthToken });
+  }
+  if (settings.whatsappFromNumber !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'whatsapp_from_number', value: settings.whatsappFromNumber });
+  }
+  if (settings.wesendrApiKey !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'wesendr_api_key', value: settings.wesendrApiKey });
+  }
+  
+  // Notification actions
+  if (settings.notificationActions !== undefined) {
+    settingsArray.push({ 
+      category: 'notifications', 
+      key: 'notification_actions', 
+      value: JSON.stringify(settings.notificationActions) 
+    });
   }
   
   return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings`, {

@@ -8,7 +8,16 @@ import * as Select from '@radix-ui/react-select';
 import * as Switch from '@radix-ui/react-switch';
 import * as Dialog from '@radix-ui/react-dialog';
 import { toast } from 'sonner';
-import { getHeroSettings, updateHeroSettings, getMaintenanceSettings, updateMaintenanceSettings, getCompanyInfo, updateCompanyInfo } from '../../lib/api';
+import { 
+  getHeroSettings, 
+  updateHeroSettings, 
+  getMaintenanceSettings, 
+  updateMaintenanceSettings, 
+  getCompanyInfo, 
+  updateCompanyInfo,
+  getNotificationSettings,
+  updateNotificationSettings
+} from '../../lib/api';
 import { compressImageToWebP } from '../../lib/imageUtils';
 import { uploadToCloudinary, getCloudinaryConfig, saveCloudinaryConfig } from '../../lib/cloudinaryUpload';
 import { UsersManagement } from '../../components/UsersManagement';
@@ -61,6 +70,7 @@ export function AdminSettings() {
     loadCloudinaryConfig();
     loadMaintenanceSettings();
     loadCompanyInfo();
+    loadNotificationSettings();
   }, []);
 
   const loadCloudinaryConfig = async () => {
@@ -203,6 +213,73 @@ export function AdminSettings() {
       toast.success('Company info saved!');
     } catch (error) {
       toast.error('Failed to save company info');
+    }
+  };
+
+  const loadNotificationSettings = async () => {
+    try {
+      const settings = await getNotificationSettings();
+      if (settings) {
+        // Load email integration settings
+        if (settings.emailProvider) setEmailProvider(settings.emailProvider);
+        if (settings.emailApiKey) setEmailApiKey(settings.emailApiKey);
+        if (settings.emailFromAddress) setEmailFromAddress(settings.emailFromAddress);
+        if (settings.emailFromName) setEmailFromName(settings.emailFromName);
+        
+        // Load WhatsApp integration settings
+        if (settings.whatsappProvider) setWhatsappProvider(settings.whatsappProvider);
+        if (settings.whatsappAccountSid) setWhatsappAccountSid(settings.whatsappAccountSid);
+        if (settings.whatsappAuthToken) setWhatsappAuthToken(settings.whatsappAuthToken);
+        if (settings.whatsappFromNumber) setWhatsappFromNumber(settings.whatsappFromNumber);
+        if (settings.wesendrApiKey) setWesendrApiKey(settings.wesendrApiKey);
+        
+        // Load notification actions
+        if (settings.notificationActions) {
+          setNotificationActions(settings.notificationActions);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load notification settings');
+    }
+  };
+
+  const handleSaveEmailSettings = async () => {
+    try {
+      await updateNotificationSettings({
+        emailProvider,
+        emailApiKey,
+        emailFromAddress,
+        emailFromName,
+      });
+      toast.success('Email integration saved!');
+    } catch (error) {
+      toast.error('Failed to save email settings');
+    }
+  };
+
+  const handleSaveWhatsAppSettings = async () => {
+    try {
+      await updateNotificationSettings({
+        whatsappProvider,
+        whatsappAccountSid,
+        whatsappAuthToken,
+        whatsappFromNumber,
+        wesendrApiKey,
+      });
+      toast.success('WhatsApp integration saved!');
+    } catch (error) {
+      toast.error('Failed to save WhatsApp settings');
+    }
+  };
+
+  const handleSaveNotificationSettings = async () => {
+    try {
+      await updateNotificationSettings({
+        notificationActions,
+      });
+      toast.success('Notification settings saved!');
+    } catch (error) {
+      toast.error('Failed to save notification settings');
     }
   };
 
@@ -599,7 +676,7 @@ export function AdminSettings() {
                     <li>Configure your sending domain and verify it</li>
                   </ol>
                 </div>
-                <Button onClick={() => toast.success('Email integration saved!')}>
+                <Button onClick={handleSaveEmailSettings}>
                   <Mail className="h-4 w-4 mr-2" />
                   Save Email Settings
                 </Button>
@@ -694,7 +771,7 @@ export function AdminSettings() {
                   </>
                 )}
                 
-                <Button onClick={() => toast.success('WhatsApp integration saved!')}>
+                <Button onClick={handleSaveWhatsAppSettings}>
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Save WhatsApp Settings
                 </Button>
@@ -818,7 +895,7 @@ export function AdminSettings() {
                   </div>
                 </div>
 
-                <Button onClick={() => toast.success('Notification actions saved!')}>
+                <Button onClick={handleSaveNotificationSettings}>
                   <Save className="h-4 w-4 mr-2" />
                   Save Notification Actions
                 </Button>
