@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router';
-import { MapPin, Users, Bed, Bath, Wifi, Check } from 'lucide-react';
+import { MapPin, Users, Bed, Bath, Wifi, Check, Tag } from 'lucide-react';
 import { getProperty, Property } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -145,6 +145,64 @@ export function PropertyDetails() {
                       max={property.guests}
                     />
                   </div>
+
+                  {/* Discount Information Banner */}
+                  <div className="bg-[#6B7C3C]/10 border border-[#6B7C3C]/20 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <Tag className="h-4 w-4 text-[#6B7C3C] mt-0.5 flex-shrink-0" />
+                      <div className="text-xs text-[#3a3a3a]">
+                        <div className="font-semibold mb-1">Special Discounts!</div>
+                        <div className="space-y-0.5">
+                          <div>• 7+ days: <span className="font-semibold">2% off</span></div>
+                          <div>• 30+ days: <span className="font-semibold">8% off</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Breakdown */}
+                  {checkIn && checkOut && (() => {
+                    const numberOfDays = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
+                    
+                    if (numberOfDays <= 0) return null;
+                    
+                    const basePrice = property.price * numberOfDays;
+                    
+                    let discountPercent = 0;
+                    if (numberOfDays >= 30) {
+                      discountPercent = 8;
+                    } else if (numberOfDays >= 7) {
+                      discountPercent = 2;
+                    }
+                    
+                    const discountAmount = basePrice * (discountPercent / 100);
+                    const finalPrice = basePrice - discountAmount;
+                    
+                    return (
+                      <div className="bg-gray-50 rounded-lg p-3 space-y-2 border border-gray-200">
+                        <div className="text-xs font-semibold mb-2">Price Breakdown</div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">${property.price} × {numberOfDays} night{numberOfDays > 1 ? 's' : ''}</span>
+                          <span>${basePrice.toFixed(2)}</span>
+                        </div>
+                        {discountPercent > 0 && (
+                          <div className="flex justify-between text-xs text-[#6B7C3C]">
+                            <span className="flex items-center gap-1">
+                              <Tag className="h-3 w-3" />
+                              {discountPercent}% Discount
+                            </span>
+                            <span>-${discountAmount.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="border-t border-gray-300 pt-2 mt-2"></div>
+                        <div className="flex justify-between font-semibold text-sm">
+                          <span>Total</span>
+                          <span>${finalPrice.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {user ? (
                     <Button className="w-full" onClick={handleBooking}>
                       Request to Book

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Plus, Home, Users, Calendar, DollarSign, Trash2 } from 'lucide-react';
+import { Plus, Home, Users, Calendar, DollarSign, Trash2, Tag } from 'lucide-react';
 import { getBookings, Booking, getProperties, getCustomers, getPayments, Payment, createPayment, deleteBooking } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -41,8 +41,18 @@ export function AdminBookings() {
         const numberOfDays = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
         
         if (numberOfDays > 0) {
-          const totalPrice = property.price * numberOfDays;
-          setFormData(prev => ({ ...prev, totalPrice: totalPrice.toString() }));
+          const basePrice = property.price * numberOfDays;
+          
+          // Apply discounts based on duration
+          let discount = 0;
+          if (numberOfDays >= 30) {
+            discount = 0.08; // 8% for 1 month or more
+          } else if (numberOfDays >= 7) {
+            discount = 0.02; // 2% for 7 days or more
+          }
+          
+          const totalPrice = basePrice * (1 - discount);
+          setFormData(prev => ({ ...prev, totalPrice: totalPrice.toFixed(2) }));
         }
       }
     }
@@ -312,25 +322,69 @@ export function AdminBookings() {
                     type="number"
                     value={formData.guests}
                     onChange={(e) => setFormData({ ...formData, guests: e.target.value })}
+                    min="1"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm mb-2">Total Price (Auto-calculated)</label>
-                  <Input
-                    type="number"
-                    value={formData.totalPrice}
-                    readOnly
-                    className="bg-gray-100 cursor-not-allowed"
-                    placeholder="Select property and dates"
-                  />
-                  {formData.totalPrice && formData.propertyId && formData.checkIn && formData.checkOut && (
-                    <p className="text-xs text-gray-600 mt-1">
-                      {Math.ceil((new Date(formData.checkOut).getTime() - new Date(formData.checkIn).getTime()) / (1000 * 60 * 60 * 24))} nights × ${properties.find(p => p.id === formData.propertyId)?.price}/night
-                    </p>
-                  )}
+              </div>
+
+              {/* Discount Information Banner */}
+              <div className="bg-[#6B7C3C]/10 border border-[#6B7C3C]/20 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <Tag className="h-4 w-4 text-[#6B7C3C] mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-[#3a3a3a]">
+                    <div className="font-semibold mb-1">Special Discounts Available!</div>
+                    <div className="space-y-0.5">
+                      <div>• 7+ days: <span className="font-semibold">2% off</span></div>
+                      <div>• 30+ days: <span className="font-semibold">8% off</span></div>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              {/* Price Breakdown */}
+              {formData.totalPrice && formData.propertyId && formData.checkIn && formData.checkOut && (() => {
+                const property = properties.find(p => p.id === formData.propertyId);
+                if (!property) return null;
+                
+                const numberOfDays = Math.ceil((new Date(formData.checkOut).getTime() - new Date(formData.checkIn).getTime()) / (1000 * 60 * 60 * 24));
+                const basePrice = property.price * numberOfDays;
+                
+                let discountPercent = 0;
+                if (numberOfDays >= 30) {
+                  discountPercent = 8;
+                } else if (numberOfDays >= 7) {
+                  discountPercent = 2;
+                }
+                
+                const discountAmount = basePrice * (discountPercent / 100);
+                const finalPrice = basePrice - discountAmount;
+                
+                return (
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2 border border-gray-200">
+                    <div className="text-sm font-semibold mb-2">Price Breakdown</div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">${property.price} × {numberOfDays} night{numberOfDays > 1 ? 's' : ''}</span>
+                      <span>${basePrice.toFixed(2)}</span>
+                    </div>
+                    {discountPercent > 0 && (
+                      <div className="flex justify-between text-sm text-[#6B7C3C]">
+                        <span className="flex items-center gap-1">
+                          <Tag className="h-3 w-3" />
+                          {discountPercent}% Discount ({numberOfDays >= 30 ? '1 month+' : '7 days+'})
+                        </span>
+                        <span>-${discountAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="border-t border-gray-300 pt-2 mt-2"></div>
+                    <div className="flex justify-between font-semibold">
+                      <span>Total</span>
+                      <span className="text-lg">${finalPrice.toFixed(2)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="flex gap-4 pt-4">
                 <Button onClick={() => {
                   toast.success('Booking created! (Connect to Neon database to save)');
