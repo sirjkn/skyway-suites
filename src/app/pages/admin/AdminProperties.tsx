@@ -87,6 +87,7 @@ export function AdminProperties() {
         guests: Number(formData.guests),
         category: formData.category,
         image: mainImage,
+        photos: uploadedImages, // All uploaded images
         amenities: formData.amenities.split(',').map(a => a.trim()),
         available: true,
         icalUrl: '',
@@ -104,6 +105,7 @@ export function AdminProperties() {
         guests: Number(formData.guests),
         category: formData.category,
         image: mainImage,
+        photos: uploadedImages, // All uploaded images for gallery
         amenities: formData.amenities.split(',').map(a => a.trim()),
         available: true,
         icalUrl: '',
@@ -159,6 +161,8 @@ export function AdminProperties() {
         image: property.image,
         amenities: property.amenities.join(', '),
       });
+      // Load existing photos for editing
+      setUploadedImages(property.photos || []);
       setShowEditDialog(true);
     }
   };
@@ -180,6 +184,7 @@ export function AdminProperties() {
           guests: Number(formData.guests),
           category: formData.category,
           image: mainImage,
+          photos: uploadedImages, // All uploaded images for gallery
           amenities: formData.amenities.split(',').map(a => a.trim()),
           available: true,
         });
