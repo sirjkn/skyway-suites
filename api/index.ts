@@ -370,6 +370,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json(settings);
       }
 
+      // Handle fetching settings by category
+      if (action === 'category' && req.method === 'GET') {
+        const { category } = req.query;
+        if (!category || typeof category !== 'string') {
+          return res.status(400).json({ error: 'Category is required' });
+        }
+        
+        const result = await query(
+          'SELECT * FROM settings WHERE category = $1',
+          [category]
+        );
+        
+        const settings: any = {};
+        result.rows.forEach(row => {
+          // Convert snake_case to camelCase for the frontend
+          const camelKey = row.key.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase());
+          settings[camelKey] = row.value;
+        });
+        
+        return res.status(200).json(settings);
+      }
+
       if (req.method === 'GET') {
         const result = await query('SELECT * FROM settings ORDER BY category, key');
         return res.status(200).json(result.rows);

@@ -96,12 +96,15 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
   // In preview mode, don't even try to hit the API
   if (isPreviewMode()) {
-    console.warn('⚠️ Preview Mode - API not available. Deploy to Vercel to use real database.');
+    // Silently fail in preview mode - no noisy console warnings
     throw new Error('PREVIEW_MODE');
   }
 
   try {
-    console.log('🌐 API Request:', url, options.method || 'GET');
+    // Only log in development/production, not in preview
+    if (isProduction()) {
+      console.log('🌐 API Request:', url, options.method || 'GET');
+    }
     
     const response = await fetch(url, { 
       ...options, 
@@ -113,26 +116,34 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('text/html')) {
       // API is not available (deployment issue)
-      console.error('❌ API endpoint returned HTML - not deployed correctly');
+      if (isProduction()) {
+        console.error('❌ API endpoint returned HTML - not deployed correctly');
+      }
       throw new Error('API_NOT_DEPLOYED');
     }
     
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Request failed' }));
-      console.error('❌ API Error:', error);
+      if (isProduction()) {
+        console.error('❌ API Error:', error);
+      }
       throw new Error(error.error || `Request failed with status ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('✅ API Success:', url);
+    if (isProduction()) {
+      console.log('✅ API Success:', url);
+    }
     return data;
   } catch (error) {
     // Re-throw our custom errors
     if (error instanceof Error && (error.message === 'PREVIEW_MODE' || error.message === 'API_NOT_DEPLOYED')) {
       throw error;
     }
-    // Log and throw other errors
-    console.error('❌ Fetch error:', error);
+    // Log and throw other errors only in production
+    if (isProduction()) {
+      console.error('❌ Fetch error:', error);
+    }
     throw error;
   }
 }
@@ -143,7 +154,14 @@ export async function getProperties(): Promise<Property[]> {
     const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=properties`);
     return result || [];
   } catch (error) {
-    console.error('Failed to fetch properties:', error);
+    // Silently return empty array in preview mode or if API not deployed
+    if (error instanceof Error && (error.message === 'PREVIEW_MODE' || error.message === 'API_NOT_DEPLOYED')) {
+      return [];
+    }
+    // Only log unexpected errors in production
+    if (isProduction()) {
+      console.error('Failed to fetch properties:', error);
+    }
     return [];
   }
 }
@@ -152,7 +170,14 @@ export async function getPropertyById(id: string): Promise<Property | null> {
   try {
     return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties&id=${id}`);
   } catch (error) {
-    console.error('Failed to fetch property:', error);
+    // Silently return null in preview mode or if API not deployed
+    if (error instanceof Error && (error.message === 'PREVIEW_MODE' || error.message === 'API_NOT_DEPLOYED')) {
+      return null;
+    }
+    // Only log unexpected errors in production
+    if (isProduction()) {
+      console.error('Failed to fetch property:', error);
+    }
     return null;
   }
 }
@@ -186,7 +211,12 @@ export async function getBookings(): Promise<Booking[]> {
     const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=bookings`);
     return result || [];
   } catch (error) {
-    console.error('Failed to fetch bookings:', error);
+    if (error instanceof Error && (error.message === 'PREVIEW_MODE' || error.message === 'API_NOT_DEPLOYED')) {
+      return [];
+    }
+    if (isProduction()) {
+      console.error('Failed to fetch bookings:', error);
+    }
     return [];
   }
 }
@@ -224,7 +254,12 @@ export async function getCustomers(): Promise<Customer[]> {
     const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=customers`);
     return result || [];
   } catch (error) {
-    console.error('Failed to fetch customers:', error);
+    if (error instanceof Error && (error.message === 'PREVIEW_MODE' || error.message === 'API_NOT_DEPLOYED')) {
+      return [];
+    }
+    if (isProduction()) {
+      console.error('Failed to fetch customers:', error);
+    }
     return [];
   }
 }
@@ -255,7 +290,12 @@ export async function getPayments(): Promise<Payment[]> {
     const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=payments`);
     return result || [];
   } catch (error) {
-    console.error('Failed to fetch payments:', error);
+    if (error instanceof Error && (error.message === 'PREVIEW_MODE' || error.message === 'API_NOT_DEPLOYED')) {
+      return [];
+    }
+    if (isProduction()) {
+      console.error('Failed to fetch payments:', error);
+    }
     return [];
   }
 }
@@ -303,6 +343,13 @@ export interface MaintenanceSettings {
   estimated_time?: string;
 }
 
+export interface CompanyInfo {
+  companyName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+}
+
 export async function getMaintenanceSettings(): Promise<MaintenanceSettings | null> {
   try {
     return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings&action=maintenance`);
@@ -320,6 +367,36 @@ export async function updateMaintenanceSettings(settings: MaintenanceSettings): 
   }
   if (settings.estimated_time) {
     settingsArray.push({ category: 'maintenance', key: 'estimated_time', value: settings.estimated_time });
+  }
+  
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings`, {
+    method: 'PUT',
+    body: JSON.stringify(settingsArray),
+  });
+}
+
+// Company Info API
+export async function getCompanyInfo(): Promise<CompanyInfo | null> {
+  try {
+    return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings&action=category&category=company`);
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function updateCompanyInfo(info: CompanyInfo): Promise<CompanyInfo> {
+  const settingsArray = [];
+  if (info.companyName !== undefined) {
+    settingsArray.push({ category: 'company', key: 'company_name', value: info.companyName });
+  }
+  if (info.email !== undefined) {
+    settingsArray.push({ category: 'company', key: 'email', value: info.email });
+  }
+  if (info.phone !== undefined) {
+    settingsArray.push({ category: 'company', key: 'phone', value: info.phone });
+  }
+  if (info.address !== undefined) {
+    settingsArray.push({ category: 'company', key: 'address', value: info.address });
   }
   
   return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings`, {
@@ -386,7 +463,12 @@ export async function getUsers(): Promise<User[]> {
     const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=users`);
     return result || [];
   } catch (error) {
-    console.error('Failed to fetch users:', error);
+    if (error instanceof Error && (error.message === 'PREVIEW_MODE' || error.message === 'API_NOT_DEPLOYED')) {
+      return [];
+    }
+    if (isProduction()) {
+      console.error('Failed to fetch users:', error);
+    }
     return [];
   }
 }

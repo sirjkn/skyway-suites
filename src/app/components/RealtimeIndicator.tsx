@@ -18,11 +18,12 @@ export function RealtimeIndicator() {
 
   // Check API connectivity
   useEffect(() => {
-    // In preview mode, show preview status immediately
+    // In preview mode, show preview status immediately and don't make any API calls
     if (inPreview) {
       setIsConnected(null); // null will show special preview state
       setErrorMessage('Preview Mode - Deploy to Vercel');
-      return;
+      console.info('🟧 Preview Mode Active - No API calls will be made');
+      return; // Don't set up interval or make any checks
     }
 
     let isMounted = true;
@@ -69,8 +70,8 @@ export function RealtimeIndicator() {
         
         if (error instanceof Error && error.name !== 'AbortError') {
           setIsConnected(false);
-          setErrorMessage('Connection failed');
-          console.error('🔴 Connection check failed:', error);
+          setErrorMessage('API not deployed');
+          console.warn('⚠️ API not available - Deploy to Vercel to connect to Neon');
         }
       }
     };

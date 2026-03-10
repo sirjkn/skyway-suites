@@ -8,7 +8,7 @@ import * as Select from '@radix-ui/react-select';
 import * as Switch from '@radix-ui/react-switch';
 import * as Dialog from '@radix-ui/react-dialog';
 import { toast } from 'sonner';
-import { getHeroSettings, updateHeroSettings, getMaintenanceSettings, updateMaintenanceSettings } from '../../lib/api';
+import { getHeroSettings, updateHeroSettings, getMaintenanceSettings, updateMaintenanceSettings, getCompanyInfo, updateCompanyInfo } from '../../lib/api';
 import { compressImageToWebP } from '../../lib/imageUtils';
 import { uploadToCloudinary, getCloudinaryConfig, saveCloudinaryConfig } from '../../lib/cloudinaryUpload';
 import { UsersManagement } from '../../components/UsersManagement';
@@ -24,6 +24,12 @@ export function AdminSettings() {
   const [cloudinaryCloudName, setCloudinaryCloudName] = useState('');
   const [cloudinaryApiKey, setCloudinaryApiKey] = useState('');
   const [cloudinaryApiSecret, setCloudinaryApiSecret] = useState('');
+
+  // Company Info State
+  const [companyName, setCompanyName] = useState('Skyway Suites');
+  const [companyEmail, setCompanyEmail] = useState('info@skywaysuites.com');
+  const [companyPhone, setCompanyPhone] = useState('+1 (555) 123-4567');
+  const [companyAddress, setCompanyAddress] = useState('123 Main St, Suite 100, New York, NY 10001');
 
   // Email Integration State
   const [emailProvider, setEmailProvider] = useState('sendgrid');
@@ -54,6 +60,7 @@ export function AdminSettings() {
     loadHeroSettings();
     loadCloudinaryConfig();
     loadMaintenanceSettings();
+    loadCompanyInfo();
   }, []);
 
   const loadCloudinaryConfig = async () => {
@@ -168,6 +175,34 @@ export function AdminSettings() {
       toast.success('Maintenance settings saved!');
     } catch (error) {
       toast.error('Failed to save maintenance settings');
+    }
+  };
+
+  const loadCompanyInfo = async () => {
+    try {
+      const info = await getCompanyInfo();
+      if (info) {
+        setCompanyName(info.companyName || 'Skyway Suites');
+        setCompanyEmail(info.email || 'info@skywaysuites.com');
+        setCompanyPhone(info.phone || '+1 (555) 123-4567');
+        setCompanyAddress(info.address || '123 Main St, Suite 100, New York, NY 10001');
+      }
+    } catch (error) {
+      console.error('Failed to load company info');
+    }
+  };
+
+  const handleSaveCompanyInfo = async () => {
+    try {
+      await updateCompanyInfo({
+        companyName: companyName,
+        email: companyEmail,
+        phone: companyPhone,
+        address: companyAddress,
+      });
+      toast.success('Company info saved!');
+    } catch (error) {
+      toast.error('Failed to save company info');
     }
   };
 
@@ -358,21 +393,35 @@ export function AdminSettings() {
               <CardContent className="space-y-3">
                 <div>
                   <label className="block text-sm mb-2">Company Name</label>
-                  <Input defaultValue="Skyway Suites" />
+                  <Input 
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm mb-2">Email</label>
-                  <Input type="email" defaultValue="info@skywaysuites.com" />
+                  <Input 
+                    type="email"
+                    value={companyEmail}
+                    onChange={(e) => setCompanyEmail(e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm mb-2">Phone</label>
-                  <Input type="tel" defaultValue="+1 (555) 123-4567" />
+                  <Input 
+                    type="tel"
+                    value={companyPhone}
+                    onChange={(e) => setCompanyPhone(e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm mb-2">Address</label>
-                  <Input defaultValue="123 Main St, Suite 100, New York, NY 10001" />
+                  <Input 
+                    value={companyAddress}
+                    onChange={(e) => setCompanyAddress(e.target.value)}
+                  />
                 </div>
-                <Button onClick={() => toast.success('Settings saved!')}>
+                <Button onClick={handleSaveCompanyInfo}>
                   <Save className="h-4 w-4 mr-2" />
                   Save Changes
                 </Button>
