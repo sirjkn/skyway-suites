@@ -194,7 +194,6 @@ export function PropertyDetails() {
         status: 'pending',
       });
       toast.success('Booking request submitted successfully!');
-      console.log('Booking response:', response);
     } catch (err) {
       console.error('Failed to create booking:', err);
       toast.error('Failed to create booking');

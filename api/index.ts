@@ -141,6 +141,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           [email, hashedPassword, name, 'customer']
         );
         const user = result.rows[0];
+        
+        // Also create a customer record with the same ID for bookings
+        await query(
+          'INSERT INTO customers (id, email, name) VALUES ($1, $2, $3)',
+          [user.id, email, name]
+        );
+        
         const token = generateToken(user.id);
         return res.status(200).json({ user, token });
       }

@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router';
 
 export function DatabaseStatus() {
+  const location = useLocation();
   const [isConnected, setIsConnected] = useState<boolean | null>(null); // null = checking
   const [showTooltip, setShowTooltip] = useState(false);
   const [isProduction, setIsProduction] = useState(false);
   const [errorDetails, setErrorDetails] = useState<string>('');
+
+  // Don't render on frontend pages (only show on admin pages)
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   useEffect(() => {
     // Detect if we're in production (Vercel) or development (Figma Make)
@@ -65,6 +70,11 @@ export function DatabaseStatus() {
       setErrorDetails('Neon database is currently offline');
     }
   };
+
+  // Don't render on frontend pages (only show on admin pages)
+  if (!isAdminPage) {
+    return null;
+  }
 
   return (
     <div 
