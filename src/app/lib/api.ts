@@ -34,8 +34,6 @@ export interface Property {
   reviewCount?: number;
   icalUrl?: string;
   airbnbCalendarUrl?: string;
-  bookingCalendarUrl?: string;
-  vrboCalendarUrl?: string;
   calendarSyncEnabled?: boolean;
   lastCalendarSync?: string;
   createdAt?: string;
@@ -214,8 +212,6 @@ export async function createProperty(property: Omit<Property, 'id'>): Promise<Pr
     available: property.available,
     ical_export_url: property.icalUrl || '',
     airbnb_import_url: property.airbnbCalendarUrl || '',
-    booking_import_url: property.bookingCalendarUrl || '',
-    vrbo_import_url: property.vrboCalendarUrl || '',
     calendar_sync_enabled: property.calendarSyncEnabled || false,
   };
   
@@ -248,8 +244,6 @@ export async function updateProperty(id: string, property: Partial<Property>): P
   if (property.available !== undefined) apiProperty.available = property.available;
   if (property.icalUrl !== undefined) apiProperty.ical_export_url = property.icalUrl;
   if (property.airbnbCalendarUrl !== undefined) apiProperty.airbnb_import_url = property.airbnbCalendarUrl;
-  if (property.bookingCalendarUrl !== undefined) apiProperty.booking_import_url = property.bookingCalendarUrl;
-  if (property.vrboCalendarUrl !== undefined) apiProperty.vrbo_import_url = property.vrboCalendarUrl;
   if (property.calendarSyncEnabled !== undefined) apiProperty.calendar_sync_enabled = property.calendarSyncEnabled;
   
   return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties&id=${id}`, {

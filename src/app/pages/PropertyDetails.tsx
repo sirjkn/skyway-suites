@@ -68,6 +68,13 @@ export function PropertyDetails() {
           <div className="lg:col-span-2">
             <h1 className="text-3xl mb-4">{property.title}</h1>
             
+            {/* Category Badge - Charcoal black background */}
+            <div className="mb-4">
+              <span className="inline-block bg-[#3a3a3a] text-white text-sm px-3 py-1.5 rounded-md">
+                {property.category}
+              </span>
+            </div>
+            
             <div className="flex items-center text-gray-600 mb-6">
               <MapPin className="h-5 w-5 mr-2" />
               {property.location}
@@ -96,12 +103,16 @@ export function PropertyDetails() {
             <div>
               <h2 className="text-2xl mb-4">Amenities</h2>
               <div className="grid grid-cols-2 gap-4">
-                {property.amenities.map((amenity) => (
-                  <div key={amenity} className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-green-600" />
-                    <span>{amenity}</span>
-                  </div>
-                ))}
+                {property.amenities && property.amenities.length > 0 ? (
+                  property.amenities.map((amenity) => (
+                    <div key={amenity} className="flex items-center gap-2">
+                      <Check className="h-5 w-5 text-green-600" />
+                      <span>{amenity}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 col-span-2">No amenities listed</p>
+                )}
               </div>
             </div>
           </div>

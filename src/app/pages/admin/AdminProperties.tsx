@@ -79,8 +79,6 @@ export function AdminProperties() {
         available: true,
         icalUrl: '',
         airbnbCalendarUrl: '',
-        bookingCalendarUrl: '',
-        vrboCalendarUrl: '',
         calendarSyncEnabled: false,
       });
       
@@ -98,8 +96,6 @@ export function AdminProperties() {
         available: true,
         icalUrl: '',
         airbnbCalendarUrl: '',
-        bookingCalendarUrl: '',
-        vrboCalendarUrl: '',
         calendarSyncEnabled: false,
       });
       

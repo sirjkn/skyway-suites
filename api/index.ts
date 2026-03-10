@@ -21,8 +21,6 @@ function transformProperty(row: any) {
     reviewCount: row.review_count || 0,
     icalUrl: row.ical_export_url,
     airbnbCalendarUrl: row.airbnb_import_url,
-    bookingCalendarUrl: row.booking_import_url,
-    vrboCalendarUrl: row.vrbo_import_url,
     calendarSyncEnabled: row.calendar_sync_enabled,
     lastCalendarSync: row.last_calendar_sync,
     createdAt: row.created_at
@@ -185,14 +183,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             updates.push(`airbnb_import_url = $${paramIndex++}`);
             values.push(fields.airbnb_import_url);
           }
-          if (fields.booking_import_url !== undefined) {
-            updates.push(`booking_import_url = $${paramIndex++}`);
-            values.push(fields.booking_import_url);
-          }
-          if (fields.vrbo_import_url !== undefined) {
-            updates.push(`vrbo_import_url = $${paramIndex++}`);
-            values.push(fields.vrbo_import_url);
-          }
           if (fields.calendar_sync_enabled !== undefined) {
             updates.push(`calendar_sync_enabled = $${paramIndex++}`);
             values.push(fields.calendar_sync_enabled);
@@ -230,14 +220,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (req.method === 'POST') {
         const { title, description, price, location, bedrooms, bathrooms, guests, category, image, amenities,
-          ical_export_url, airbnb_import_url, booking_import_url, vrbo_import_url, calendar_sync_enabled } = req.body;
+          ical_export_url, airbnb_import_url, calendar_sync_enabled } = req.body;
         const result = await query(
           `INSERT INTO properties 
            (title, description, price, location, bedrooms, bathrooms, guests, category, image, amenities,
-            ical_export_url, airbnb_import_url, booking_import_url, vrbo_import_url, calendar_sync_enabled) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+            ical_export_url, airbnb_import_url, calendar_sync_enabled) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
           [title, description, price, location, bedrooms, bathrooms, guests, category, image, amenities,
-           ical_export_url, airbnb_import_url, booking_import_url, vrbo_import_url, calendar_sync_enabled]
+           ical_export_url, airbnb_import_url, calendar_sync_enabled]
         );
         return res.status(200).json(transformProperty(result.rows[0]));
       }

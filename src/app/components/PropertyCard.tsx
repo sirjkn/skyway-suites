@@ -11,15 +11,26 @@ export function PropertyCard({ property }: PropertyCardProps) {
   return (
     <Link to={`/properties/${property.id}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-        <div
-          className="h-48 bg-cover bg-center"
-          style={{ backgroundImage: `url('${property.image}')` }}
-        />
-        <CardContent className="p-4">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="font-semibold text-lg">{property.title}</h3>
-            <span className="text-[#6B7C3C] font-semibold">${property.price}/night</span>
+        <div className="relative">
+          <div
+            className="h-48 bg-cover bg-center"
+            style={{ backgroundImage: `url('${property.image}')` }}
+          />
+          {/* Price Badge - Positioned inside photo */}
+          <div className="absolute bottom-3 right-3 bg-red-600 text-white px-3 py-1.5 rounded-md font-semibold shadow-lg">
+            ${property.price}/night
           </div>
+        </div>
+        <CardContent className="p-4">
+          <h3 className="font-semibold text-lg mb-2">{property.title}</h3>
+          
+          {/* Category Badge - Below title with black bg */}
+          <div className="mb-3">
+            <span className="inline-block bg-black text-white text-xs px-2.5 py-1 rounded-md">
+              {property.category}
+            </span>
+          </div>
+          
           <div className="flex items-center text-gray-600 text-sm mb-3">
             <MapPin className="h-4 w-4 mr-1" />
             {property.location}
