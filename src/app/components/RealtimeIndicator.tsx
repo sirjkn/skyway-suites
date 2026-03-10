@@ -17,14 +17,14 @@ export function RealtimeIndicator() {
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+        const requestTimeout = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
         const response = await fetch('/api/health', {
           signal: controller.signal,
           cache: 'no-cache'
         });
         
-        clearTimeout(timeoutId);
+        clearTimeout(requestTimeout);
         
         if (!isMounted) return; // Check again after async operation
         
@@ -34,9 +34,17 @@ export function RealtimeIndicator() {
       } catch (error) {
         if (!isMounted) return;
         
-        // Only set disconnected if it's not an abort error
+        // In preview mode (Figma Make), API won't exist - that's ok
+        // Only set disconnected if we're in production
         if (error instanceof Error && error.name !== 'AbortError') {
-          setIsConnected(false);
+          // Check if we're in preview mode by checking the URL
+          const isPreview = window.location.hostname.includes('makeproxy') || 
+                           window.location.hostname.includes('localhost');
+          
+          if (!isPreview) {
+            setIsConnected(false);
+          }
+          // In preview mode, keep showing as connected (using mock data)
         }
       }
     };

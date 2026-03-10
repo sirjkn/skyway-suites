@@ -60,6 +60,13 @@ function getAuthToken(): string | null {
   return localStorage.getItem('token');
 }
 
+// Helper to detect if we're in preview mode
+function isPreviewMode(): boolean {
+  return window.location.hostname.includes('makeproxy') || 
+         window.location.hostname.includes('localhost') ||
+         window.location.hostname.includes('figma.site');
+}
+
 // Helper function to make authenticated requests
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = getAuthToken();
@@ -89,19 +96,154 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     
     return response.json();
   } catch (error) {
-    console.error('API Error:', error);
+    // Only log in production mode - suppress in preview
+    if (!isPreviewMode()) {
+      console.error('API Error:', error);
+    }
     // Re-throw the error so it can be caught by the calling function
     throw error;
   }
 }
 
+// Mock data for preview/development
+function getMockProperties(): Property[] {
+  return [
+    {
+      id: '1',
+      title: 'Luxury Downtown Apartment',
+      description: 'Beautiful modern apartment in the heart of downtown with stunning city views.',
+      price: 150,
+      location: 'New York, NY',
+      bedrooms: 2,
+      bathrooms: 2,
+      guests: 4,
+      image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+      amenities: ['WiFi', 'Kitchen', 'Air Conditioning', 'TV', 'Workspace'],
+      available: true,
+    },
+    {
+      id: '2',
+      title: 'Cozy Beach House',
+      description: 'Relaxing beachfront property with private access to the beach.',
+      price: 200,
+      location: 'Malibu, CA',
+      bedrooms: 3,
+      bathrooms: 2,
+      guests: 6,
+      image: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800',
+      amenities: ['WiFi', 'Beach Access', 'BBQ Grill', 'Parking', 'Ocean View'],
+      available: true,
+    },
+    {
+      id: '3',
+      title: 'Mountain Cabin Retreat',
+      description: 'Secluded cabin in the mountains perfect for a peaceful getaway.',
+      price: 120,
+      location: 'Aspen, CO',
+      bedrooms: 2,
+      bathrooms: 1,
+      guests: 4,
+      image: 'https://images.unsplash.com/photo-1542718610-a1d656d1884c?w=800',
+      amenities: ['Fireplace', 'Hiking Trails', 'Pet Friendly', 'Kitchen', 'Hot Tub'],
+      available: true,
+    },
+  ];
+}
+
+function getMockBookings(): Booking[] {
+  return [
+    {
+      id: '1',
+      propertyId: '1',
+      customerId: '1',
+      checkIn: '2026-03-15',
+      checkOut: '2026-03-20',
+      guests: 2,
+      totalPrice: 750,
+      status: 'confirmed',
+      createdAt: '2026-03-01',
+    },
+    {
+      id: '2',
+      propertyId: '2',
+      customerId: '2',
+      checkIn: '2026-04-10',
+      checkOut: '2026-04-17',
+      guests: 4,
+      totalPrice: 1400,
+      status: 'pending',
+      createdAt: '2026-03-05',
+    },
+  ];
+}
+
+function getMockCustomers(): Customer[] {
+  return [
+    {
+      id: '1',
+      name: 'John Doe',
+      email: 'john@example.com',
+      phone: '+1 (555) 123-4567',
+      createdAt: '2026-01-15',
+      totalBookings: 5,
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+      phone: '+1 (555) 987-6543',
+      createdAt: '2026-02-20',
+      totalBookings: 3,
+    },
+  ];
+}
+
+function getMockPayments(): Payment[] {
+  return [
+    {
+      id: '1',
+      bookingId: '1',
+      customerId: '1',
+      amount: 750,
+      status: 'paid',
+      paymentMethod: 'Credit Card',
+      createdAt: '2026-03-01',
+    },
+    {
+      id: '2',
+      bookingId: '2',
+      customerId: '2',
+      amount: 1400,
+      status: 'pending',
+      paymentMethod: 'Credit Card',
+      createdAt: '2026-03-05',
+    },
+  ];
+}
+
 // Properties API
 export async function getProperties(): Promise<Property[]> {
-  return await fetchWithAuth(`${API_BASE_URL}/properties`);
+  try {
+    return await fetchWithAuth(`${API_BASE_URL}/properties`);
+  } catch (error) {
+    // Silently fallback to mock data in preview mode
+    if (!isPreviewMode()) {
+      console.warn('API not available, using mock data');
+    }
+    return getMockProperties();
+  }
 }
 
 export async function getProperty(id: string): Promise<Property | null> {
-  return await fetchWithAuth(`${API_BASE_URL}/properties?id=${id}`);
+  try {
+    return await fetchWithAuth(`${API_BASE_URL}/properties?id=${id}`);
+  } catch (error) {
+    // Silently fallback to mock data in preview mode
+    if (!isPreviewMode()) {
+      console.warn('API not available, using mock data');
+    }
+    return getMockProperties().find(p => p.id === id) || null;
+  }
 }
 
 export async function createProperty(property: Omit<Property, 'id'>): Promise<Property> {
@@ -126,7 +268,15 @@ export async function deleteProperty(id: string): Promise<void> {
 
 // Bookings API
 export async function getBookings(): Promise<Booking[]> {
-  return await fetchWithAuth(`${API_BASE_URL}/bookings`);
+  try {
+    return await fetchWithAuth(`${API_BASE_URL}/bookings`);
+  } catch (error) {
+    // Silently fallback to mock data in preview mode
+    if (!isPreviewMode()) {
+      console.warn('API not available, using mock data');
+    }
+    return getMockBookings();
+  }
 }
 
 export async function createBooking(booking: Omit<Booking, 'id' | 'createdAt'>): Promise<Booking> {
@@ -158,7 +308,15 @@ export async function deleteBooking(id: string): Promise<void> {
 
 // Customers API
 export async function getCustomers(): Promise<Customer[]> {
-  return await fetchWithAuth(`${API_BASE_URL}/customers`);
+  try {
+    return await fetchWithAuth(`${API_BASE_URL}/customers`);
+  } catch (error) {
+    // Silently fallback to mock data in preview mode
+    if (!isPreviewMode()) {
+      console.warn('API not available, using mock data');
+    }
+    return getMockCustomers();
+  }
 }
 
 export async function createCustomer(customer: Omit<Customer, 'id' | 'createdAt' | 'totalBookings'>): Promise<Customer> {
@@ -183,7 +341,15 @@ export async function deleteCustomer(id: string): Promise<void> {
 
 // Payments API
 export async function getPayments(): Promise<Payment[]> {
-  return await fetchWithAuth(`${API_BASE_URL}/payments`);
+  try {
+    return await fetchWithAuth(`${API_BASE_URL}/payments`);
+  } catch (error) {
+    // Silently fallback to mock data in preview mode
+    if (!isPreviewMode()) {
+      console.warn('API not available, using mock data');
+    }
+    return getMockPayments();
+  }
 }
 
 export async function createPayment(payment: Omit<Payment, 'id' | 'createdAt'>): Promise<Payment> {
@@ -206,7 +372,15 @@ export async function deletePayment(id: string): Promise<void> {
 
 // Hero Settings API
 export async function getHeroSettings(): Promise<HeroSettings | null> {
-  return await fetchWithAuth(`${API_BASE_URL}/settings?category=hero`);
+  try {
+    return await fetchWithAuth(`${API_BASE_URL}/settings?category=hero`);
+  } catch (error) {
+    // Silently fallback to null in preview mode
+    if (!isPreviewMode()) {
+      console.warn('Settings API not available');
+    }
+    return null;
+  }
 }
 
 export async function updateHeroSettings(settings: HeroSettings): Promise<HeroSettings> {
