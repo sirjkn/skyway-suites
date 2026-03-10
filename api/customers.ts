@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query } from './config/db';
-import { hashPassword } from './utils/auth';
+import { query } from './config/db.js';
+import { hashPassword } from './utils/auth.js';
 
 // Helper to transform database row to API format
 function transformCustomer(row: any) {

@@ -1,5 +1,8 @@
-import { Pool } from 'pg';
-import { ENV } from './env';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { ENV } from './env.js';
+
+// Configure Neon for serverless (uses fetch instead of WebSockets)
+neonConfig.fetchConnectionCache = true;
 
 // Singleton connection pool
 let pool: Pool | null = null;
@@ -8,30 +11,18 @@ export function getPool(): Pool {
   if (!pool) {
     const connectionString = process.env.DATABASE_URL || ENV.DATABASE_URL;
     
-    console.log('🔌 Initializing database connection to Neon...');
+    console.log('🔌 Initializing Neon serverless database connection...');
     console.log('📍 Connection URL present:', !!connectionString);
     console.log('🌐 Environment:', process.env.VERCEL ? 'Vercel Production' : 'Development');
     
     pool = new Pool({
       connectionString,
-      ssl: {
-        rejectUnauthorized: false
-      },
       max: ENV.DB_POOL.max,
       idleTimeoutMillis: ENV.DB_POOL.idleTimeoutMillis,
       connectionTimeoutMillis: ENV.DB_POOL.connectionTimeoutMillis,
     });
     
-    // Add error handler to pool
-    pool.on('error', (err) => {
-      console.error('❌ Unexpected database pool error:', err);
-    });
-    
-    pool.on('connect', () => {
-      console.log('✅ New database client connected to Neon');
-    });
-    
-    console.log('✅ Database pool initialized with Neon PostgreSQL');
+    console.log('✅ Neon serverless database pool initialized');
   }
   return pool;
 }

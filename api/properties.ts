@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query } from './config/db';
+import { query } from './config/db.js';
 
 // Helper to transform database row to API format
 function transformProperty(row: any) {

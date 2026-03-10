@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { ENV } from '../config/env';
+import { ENV } from '../config/env.js';
 
 // JWT Secret from centralized config
 const JWT_SECRET = process.env.JWT_SECRET || ENV.JWT_SECRET;

@@ -1,183 +1,248 @@
-# 🚀 Deploy Your App NOW - 3 Simple Steps
+# 🚀 Deploy to Vercel NOW - Quick Guide
 
-## ✅ **Everything is Ready!**
+## The Problem You're Seeing
 
-Your Skyway Suites app is fully configured with:
-- ✅ Database connection **hardcoded** (no env var setup needed!)
-- ✅ API routes optimized for Vercel free plan (8 functions)
-- ✅ All frontend connected to backend
-- ✅ Real data enabled
+You're getting a **404 error** when accessing `/api/health-simple` because:
+
+1. You're running the regular Vite dev server (`npm run dev`)
+2. The Vite dev server only serves the React frontend
+3. The `/api/*` routes are Vercel serverless functions
+4. Serverless functions only work on Vercel (or with `vercel dev` locally)
+
+## The Solution
+
+Deploy to Vercel! It takes 2 minutes.
 
 ---
 
-## 📋 **3 Steps to Deploy**
+## Option A: Deploy via Vercel CLI (Fastest)
 
-### **Step 1: Push to GitHub** (30 seconds)
+### Step 1: Install Vercel CLI
+
+```bash
+npm install -g vercel
+```
+
+### Step 2: Login
+
+```bash
+vercel login
+```
+
+This will open your browser to authenticate.
+
+### Step 3: Deploy
+
+```bash
+vercel --prod
+```
+
+That's it! After ~30 seconds, you'll get a URL like:
+```
+✅ Production: https://skyway-suites-abc123.vercel.app
+```
+
+### Step 4: Test
+
+Visit these URLs (replace with your actual URL):
+
+```
+https://skyway-suites-abc123.vercel.app/
+https://skyway-suites-abc123.vercel.app/api/health-simple
+https://skyway-suites-abc123.vercel.app/api/health
+```
+
+---
+
+## Option B: Deploy via GitHub
+
+### Step 1: Push to GitHub
 
 ```bash
 git add .
-git commit -m "Deploy Skyway Suites with hardcoded database"
+git commit -m "Fix serverless functions with Neon driver"
 git push origin main
 ```
 
-### **Step 2: Wait for Vercel** (2-3 minutes)
+### Step 2: Connect to Vercel
 
 1. Go to [vercel.com](https://vercel.com)
-2. Your project will **auto-deploy** from GitHub
-3. Wait for **"Ready"** status ✅
-4. Click the deployment URL to view your live app!
+2. Click **Add New Project**
+3. Import your GitHub repository
+4. Click **Deploy**
 
-### **Step 3: Initialize Database** (One-time, 2 minutes)
+### Step 3: Test
 
-1. Go to [neon.tech](https://neon.tech) → Your Project
-2. Click **"SQL Editor"**
-3. Open file `/backend-api/setup-database.sql` in your code
-4. **Copy all content** (Ctrl+A, Ctrl+C)
-5. **Paste** into Neon SQL Editor
-6. Click **"Run"** ▶️
-7. Wait for "Success" messages ✅
+Vercel will give you a URL after deployment:
+```
+https://your-repo-name.vercel.app
+```
 
----
-
-## 🎉 **That's It - You're Live!**
-
-Visit your Vercel URL and test:
-
-1. Go to `/admin/login`
-2. Login with:
-   - Email: `admin@skywaysuites.com`
-   - Password: `admin123`
-3. Create a test property
-4. Refresh the page
-5. **Property still there?** ✅ **Success!** Real data is working!
-
----
-
-## 🆘 **Troubleshooting**
-
-### **Problem: "Failed to process payment" or "Failed to delete booking"**
-
-**Cause:** Database tables not initialized (forgot Step 3)
-
-**Fix:**
-- Run `/backend-api/setup-database.sql` in Neon SQL Editor
-- Verify tables exist with this query:
-  ```sql
-  SELECT table_name FROM information_schema.tables 
-  WHERE table_schema = 'public';
-  ```
-- Should show: properties, customers, bookings, payments, users, settings
-
----
-
-### **Problem: "API endpoint not available"**
-
-**Cause:** Deployment failed or not complete
-
-**Fix:**
-- Check Vercel deployment status
-- Make sure latest commit is deployed
-- Check Vercel Function logs for errors
-- Redeploy if needed
-
----
-
-### **Problem: "Still using mock data"**
-
-**Cause:** Database tables don't exist or Neon is sleeping
-
-**Fix:**
-1. Run database setup script (Step 3 above)
-2. Go to [neon.tech](https://neon.tech) and open your project (wakes it up)
-3. Wait 10-20 seconds
-4. Try again
-
----
-
-## 🔍 **Get Detailed Help**
-
-If you need more troubleshooting:
-
-- **Quick Fix:** Read `/FIX_API_ERRORS_QUICK.md`
-- **Test APIs:** Open `/test-api.html` in browser
-- **Detailed Guide:** Read `/TROUBLESHOOTING_API_ERRORS.md`
-- **Deployment Info:** Read `/DEPLOYMENT_READY.md`
-
----
-
-## 📊 **Verify Everything Works**
-
-After deployment, test these features:
-
-- [ ] Homepage loads
-- [ ] Admin login works
-- [ ] Can create properties
-- [ ] Properties persist after refresh (proves real data!)
-- [ ] Can create bookings
-- [ ] Can manage customers
-- [ ] Can process payments
-- [ ] Settings save correctly
-
----
-
-## 💡 **Important Notes**
-
-### **Database Connection is Hardcoded**
-Your Neon connection string is hardcoded in `/api/config/db.ts`, so you don't need to set `DATABASE_URL` in Vercel. It just works! 🎉
-
-### **Database Tables Are Required**
-The database connection works automatically, but you **must run the setup script** (Step 3) to create tables. Without tables, the app can't store data.
-
-### **Neon Free Tier**
-Neon free tier databases sleep after inactivity. First request after sleep may take 5-10 seconds. Subsequent requests are instant!
-
-### **Vercel Free Tier**
-Your app uses only 8 of the 12 allowed serverless functions on Vercel's free plan. You're well within limits! ✅
-
----
-
-## 🎯 **Quick Commands**
-
-```bash
-# Deploy to Vercel
-git add .
-git commit -m "Deploy Skyway Suites"
-git push origin main
-
-# Check deployment status
-# Go to: https://vercel.com
-
-# View your live app
-# Click the deployment URL in Vercel dashboard
+Test the endpoints:
+```
+https://your-repo-name.vercel.app/api/health-simple
+https://your-repo-name.vercel.app/api/health
 ```
 
 ---
 
-## ✅ **Success Checklist**
+## After Deployment
 
-- [ ] Pushed latest code to GitHub
-- [ ] Vercel shows "Ready" status
-- [ ] Ran database setup script in Neon
-- [ ] Verified tables exist in database
-- [ ] Can login to admin panel
-- [ ] Created a test property
-- [ ] Property persists after refresh
-- [ ] No errors in browser console
+### 1. Check the Health Endpoints
+
+**Simple health (no database):**
+```bash
+curl https://your-app.vercel.app/api/health-simple
+```
+
+Should return:
+```json
+{
+  "status": "ok",
+  "message": "API is running",
+  "timestamp": "2026-03-10T..."
+}
+```
+
+**Full health (with database):**
+```bash
+curl https://your-app.vercel.app/api/health
+```
+
+Should return:
+```json
+{
+  "status": "ok",
+  "database": "connected",
+  "message": "Skyway Suites API is running"
+}
+```
+
+### 2. Check the Database Status Indicator
+
+1. Open your deployed site in a browser
+2. Look at the **bottom-left corner**
+3. You should see a **pulsing green dot** if database is connected
+4. Hover over it to see details
+
+### 3. Check Vercel Function Logs
+
+If something doesn't work:
+
+1. Go to [vercel.com](https://vercel.com)
+2. Click on your project
+3. Go to **Deployments**
+4. Click on the latest deployment
+5. Click **Functions** tab
+6. Click on `/api/health`
+7. Check the logs for errors
 
 ---
 
-## 🎊 **You're Done!**
+## Common Issues After Deployment
 
-Your Skyway Suites application is now:
-- ✅ **Live** on Vercel
-- ✅ **Connected** to Neon database
-- ✅ **Storing** real data
-- ✅ **Ready** for production use
+### Issue 1: Database shows disconnected (red dot)
 
-Share your app URL and start managing properties! 🏠
+**Cause:** Neon database is suspended (free tier auto-suspends)
+
+**Fix:**
+1. Go to [neon.tech](https://neon.tech)
+2. Open your database dashboard
+3. The database will wake up when you access it
+4. Refresh your app after 10 seconds
+
+### Issue 2: /api/health returns 500 error
+
+**Cause:** Missing environment variables or database issue
+
+**Fix:**
+1. Go to Vercel → Project → Settings → Environment Variables
+2. Add:
+   ```
+   DATABASE_URL=postgresql://...your-connection-string...
+   JWT_SECRET=skyway-suites-secret-key-2026-production-change-this
+   ```
+3. Redeploy: `vercel --prod`
+
+### Issue 3: "Cannot find module @neondatabase/serverless"
+
+**Cause:** Dependencies not installed
+
+**Fix:**
+1. Check `package.json` has `"@neondatabase/serverless": "^1.0.2"` in dependencies
+2. Commit and push again
+3. Or redeploy: `vercel --prod --force`
 
 ---
 
-**Need help?** Check `/FIX_API_ERRORS_QUICK.md` for common issues and solutions.
+## Testing Locally (Optional)
 
-**Happy deploying!** 🚀
+If you want to test API routes locally BEFORE deploying:
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Run Vercel dev server (includes API routes)
+vercel dev
+```
+
+Then visit:
+```
+http://localhost:3000/api/health-simple
+http://localhost:3000/api/health
+```
+
+**Note:** Regular `npm run dev` will NOT work for API routes!
+
+---
+
+## What We Fixed
+
+Your original error was **FUNCTION_INVOCATION_FAILED** because:
+
+1. ❌ Using `pg` package (needs native bindings, doesn't work in serverless)
+2. ❌ Missing `.js` extensions on imports (required for ES modules)
+3. ❌ `channel_binding=require` in DATABASE_URL (not supported)
+
+Now it's fixed:
+
+1. ✅ Using `@neondatabase/serverless` (works perfectly in Vercel)
+2. ✅ All imports have `.js` extensions
+3. ✅ Clean connection string with just `sslmode=require`
+
+---
+
+## Summary
+
+**To fix the 404 error you're seeing:**
+
+1. **Don't test locally with `npm run dev`** - API routes won't work
+2. **Deploy to Vercel:** `vercel --prod`
+3. **Test on Vercel URL:** `https://your-app.vercel.app/api/health-simple`
+
+Or:
+
+1. **Use Vercel dev:** `vercel dev`
+2. **Test locally:** `http://localhost:3000/api/health-simple`
+
+---
+
+## Need Help?
+
+Check these files:
+- `/TESTING_GUIDE.md` - Complete testing guide
+- `/VERCEL_DEPLOYMENT_FIX.md` - Detailed explanation of fixes
+- `/LOCAL_DEVELOPMENT.md` - How to run locally
+
+Or check Vercel function logs for specific errors.
+
+---
+
+## Ready? Let's Deploy!
+
+```bash
+vercel --prod
+```
+
+🎉 Your app will be live in ~30 seconds!

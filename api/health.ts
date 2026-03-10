@@ -1,5 +1,22 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query } from './config/db';
+
+// Dynamic import to catch errors
+async function testDatabaseConnection() {
+  try {
+    const { query } = await import('./config/db.js');
+    const result = await query('SELECT NOW() as time, version() as version');
+    return {
+      success: true,
+      data: result.rows[0]
+    };
+  } catch (error) {
+    console.error('Database connection error:', error);
+    return {
+      success: false,
+      error: String(error)
+    };
+  }
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS and set Content-Type
@@ -25,21 +42,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       setTimeout(() => reject(new Error('Database query timeout after 5 seconds')), 5000);
     });
     
-    const queryPromise = query('SELECT NOW() as time, version() as version');
+    const connectionTest = testDatabaseConnection();
     
-    const result = await Promise.race([queryPromise, timeoutPromise]) as any;
+    const result = await Promise.race([connectionTest, timeoutPromise]) as any;
     
-    console.log('✅ Health check successful');
-    
-    return res.status(200).json({
-      status: 'ok',
-      database: 'connected',
-      message: 'Skyway Suites API is running',
-      timestamp: new Date().toISOString(),
-      dbTime: result.rows[0].time,
-      dbVersion: result.rows[0].version.split(' ')[0],
-      environment: process.env.VERCEL ? 'production' : 'development'
-    });
+    if (result.success) {
+      console.log('✅ Health check successful');
+      
+      return res.status(200).json({
+        status: 'ok',
+        database: 'connected',
+        message: 'Skyway Suites API is running',
+        timestamp: new Date().toISOString(),
+        dbTime: result.data.time,
+        dbVersion: result.data.version.split(' ')[0],
+        environment: process.env.VERCEL ? 'production' : 'development'
+      });
+    } else {
+      throw new Error(result.error);
+    }
   } catch (error) {
     console.error('❌ Health check failed:', error);
     
