@@ -23,8 +23,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 // Helper to detect if we're in Figma Make preview
 const isInPreviewMode = () => {
   const hostname = window.location.hostname;
-  // Only show preview mode if we're in Figma Make AND user is not logged in with a real account
-  return !hostname.includes('vercel.app') && !hostname.includes('localhost');
+  // Only enable preview mode in Figma Make (NOT on production domains)
+  // Preview mode is disabled for localhost, vercel.app, and custom domains
+  return !hostname.includes('localhost') && 
+         !hostname.includes('vercel.app') && 
+         !hostname.includes('.co.ke') &&
+         !hostname.includes('.com') &&
+         !hostname.includes('.net') &&
+         !hostname.includes('.org');
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -39,6 +45,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
+      // If on production and using a preview token, clear it
+      if (!baseIsPreviewMode && token.startsWith('preview-token-')) {
+        console.log('Preview token detected on production domain. Clearing...');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+        return;
+      }
+      
       const userData = localStorage.getItem('user');
       if (userData) {
         try {
@@ -55,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-  }, []);
+  }, [baseIsPreviewMode]);
 
   const login = async (email: string, password: string) => {
     try {
