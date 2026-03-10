@@ -399,31 +399,65 @@ export async function checkAirbnbAvailability(
   property: Property,
   checkIn: string,
   checkOut: string
-): Promise<{ available: boolean; conflictDate?: string }> {
-  if (!property.calendarSyncEnabled || !property.airbnbCalendarUrl) {
+): Promise<{ available: boolean; conflictDate?: string }>;
+export async function checkAirbnbAvailability(
+  icalUrl: string,
+  checkIn: string,
+  checkOut: string
+): Promise<{ available: boolean; conflictDate?: string; airbnbBookings?: Array<{ checkIn: string; checkOut: string }> }>;
+export async function checkAirbnbAvailability(
+  propertyOrUrl: Property | string,
+  checkIn: string,
+  checkOut: string
+): Promise<{ available: boolean; conflictDate?: string; airbnbBookings?: Array<{ checkIn: string; checkOut: string }> }> {
+  let airbnbCalendarUrl: string | undefined;
+  
+  // Handle both Property object and direct URL string
+  if (typeof propertyOrUrl === 'string') {
+    airbnbCalendarUrl = propertyOrUrl;
+  } else {
+    if (!propertyOrUrl.calendarSyncEnabled || !propertyOrUrl.airbnbCalendarUrl) {
+      return { available: true };
+    }
+    airbnbCalendarUrl = propertyOrUrl.airbnbCalendarUrl;
+  }
+  
+  if (!airbnbCalendarUrl) {
     return { available: true };
   }
   
   try {
-    const response = await fetch(property.airbnbCalendarUrl);
+    // Use proxy endpoint to avoid CORS issues
+    const proxyUrl = `/api/proxy-ical?url=${encodeURIComponent(airbnbCalendarUrl)}`;
+    const response = await fetch(proxyUrl);
+    
     if (!response.ok) {
-      console.error('Failed to fetch Airbnb calendar');
-      return { available: true }; // Fail open
+      console.error('Failed to fetch Airbnb calendar via proxy');
+      return { available: true, airbnbBookings: [] }; // Fail open
     }
     
     const icalData = await response.text();
     const airbnbBookings = parseICalDates(icalData);
     
-    for (const booking of airbnbBookings) {
-      if (doDatesOverlap(checkIn, checkOut, booking.start, booking.end)) {
-        return { available: false, conflictDate: booking.end };
+    // Convert to our booking format
+    const formattedBookings = airbnbBookings.map(booking => ({
+      checkIn: booking.start,
+      checkOut: booking.end,
+    }));
+    
+    // If checkIn and checkOut are provided, check for conflicts
+    if (checkIn && checkOut) {
+      for (const booking of airbnbBookings) {
+        if (doDatesOverlap(checkIn, checkOut, booking.start, booking.end)) {
+          return { available: false, conflictDate: booking.end, airbnbBookings: formattedBookings };
+        }
       }
     }
     
-    return { available: true };
+    return { available: true, airbnbBookings: formattedBookings };
   } catch (error) {
     console.error('Failed to check Airbnb availability:', error);
-    return { available: true }; // Fail open
+    return { available: true, airbnbBookings: [] }; // Fail open
   }
 }
 
