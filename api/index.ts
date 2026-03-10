@@ -533,10 +533,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(404).json({ error: 'Endpoint not found' });
 
   } catch (error) {
-    console.error('API error:', error);
+    console.error('❌ API ERROR - FULL DETAILS:', error);
+    console.error('❌ ERROR MESSAGE:', error instanceof Error ? error.message : String(error));
+    console.error('❌ ERROR STACK:', error instanceof Error ? error.stack : 'No stack');
+    
+    // Return detailed error message for debugging
     return res.status(500).json({ 
-      error: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? String(error) : undefined
+      error: error instanceof Error ? error.message : 'Internal server error',
+      details: error instanceof Error ? error.message : String(error),
+      // Always return details for debugging (remove in production if needed)
+      fullError: String(error)
     });
   }
 }
