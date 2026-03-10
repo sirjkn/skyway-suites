@@ -26,8 +26,6 @@ export function AdminBookings() {
 
   useEffect(() => {
     loadBookings();
-    getProperties().then(setProperties);
-    getCustomers().then(setCustomers);
     getPayments().then(setPayments);
   }, []);
 
@@ -60,7 +58,16 @@ export function AdminBookings() {
 
   const loadBookings = async () => {
     const data = await getBookings();
+    console.log('Loaded bookings:', data);
     setBookings(data);
+    
+    // Also reload properties and customers to ensure we have the latest data
+    const propsData = await getProperties();
+    const customersData = await getCustomers();
+    console.log('Properties:', propsData);
+    console.log('Customers:', customersData);
+    setProperties(propsData);
+    setCustomers(customersData);
   };
 
   const getBookingStatus = (booking: Booking) => {
@@ -140,6 +147,32 @@ export function AdminBookings() {
   };
 
   const handleCreateBooking = async () => {
+    // Validate all required fields
+    if (!formData.propertyId) {
+      toast.error('Please select a property');
+      return;
+    }
+    if (!formData.customerId) {
+      toast.error('Please select a customer');
+      return;
+    }
+    if (!formData.checkIn) {
+      toast.error('Please select check-in date');
+      return;
+    }
+    if (!formData.checkOut) {
+      toast.error('Please select check-out date');
+      return;
+    }
+    if (!formData.guests || parseInt(formData.guests) < 1) {
+      toast.error('Please enter number of guests');
+      return;
+    }
+    if (!formData.totalPrice || parseFloat(formData.totalPrice) <= 0) {
+      toast.error('Invalid total price. Please check dates.');
+      return;
+    }
+
     try {
       const newBooking = await createBooking({
         propertyId: formData.propertyId,
@@ -151,11 +184,26 @@ export function AdminBookings() {
         status: 'pending',
       });
 
+      console.log('Booking created:', newBooking);
       toast.success('Booking created successfully!');
+      
+      // Reset form
+      setFormData({
+        propertyId: '',
+        customerId: '',
+        checkIn: '',
+        checkOut: '',
+        guests: '',
+        totalPrice: '',
+      });
+      
       setShowAddDialog(false);
-      loadBookings();
+      
+      // Reload bookings to show the new one
+      await loadBookings();
     } catch (error) {
-      toast.error('Failed to create booking');
+      console.error('Failed to create booking:', error);
+      toast.error('Failed to create booking. Please try again.');
     }
   };
 
@@ -315,8 +363,8 @@ export function AdminBookings() {
                   searchPlaceholder="Search customers..."
                 />
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
+              <div className="grid grid-cols-8 gap-3">
+                <div className="col-span-3">
                   <label className="block text-xs mb-1.5">Check-in</label>
                   <Input
                     type="date"
@@ -326,7 +374,7 @@ export function AdminBookings() {
                     className="h-9 text-sm"
                   />
                 </div>
-                <div>
+                <div className="col-span-3">
                   <label className="block text-xs mb-1.5">Check-out</label>
                   <Input
                     type="date"
@@ -336,7 +384,7 @@ export function AdminBookings() {
                     className="h-9 text-sm"
                   />
                 </div>
-                <div>
+                <div className="col-span-2">
                   <label className="block text-xs mb-1.5">Guests</label>
                   <Input
                     type="number"
