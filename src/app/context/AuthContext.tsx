@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Real API call for production
-      const response = await fetch(`${API_BASE_URL}/auth?action=login`, {
+      const response = await fetch(`${API_BASE_URL}?endpoint=auth&action=login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -146,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Real API call for production
-      const response = await fetch(`${API_BASE_URL}/auth?action=signup`, {
+      const response = await fetch(`${API_BASE_URL}?endpoint=auth&action=signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name }),

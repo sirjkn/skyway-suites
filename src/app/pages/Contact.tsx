@@ -10,13 +10,27 @@ export function Contact() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Connect to your Neon database to save contact form
-    toast.success('Message sent! We\'ll get back to you soon. (Connect to Neon to save)');
-    setName('');
-    setEmail('');
-    setMessage('');
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}?endpoint=contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+      
+      toast.success('Message sent! We\'ll get back to you soon.');
+      setName('');
+      setEmail('');
+      setMessage('');
+    } catch (error) {
+      toast.error('Failed to send message. Please try again.');
+    }
   };
 
   return (

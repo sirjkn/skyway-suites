@@ -95,109 +95,109 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
 // Properties API
 export async function getProperties(): Promise<Property[]> {
-  return await fetchWithAuth(`${API_BASE_URL}/properties`);
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties`);
 }
 
-export async function getProperty(id: string): Promise<Property | null> {
-  return await fetchWithAuth(`${API_BASE_URL}/properties?id=${id}`);
+export async function getPropertyById(id: string): Promise<Property> {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties&id=${id}`);
 }
 
 export async function createProperty(property: Omit<Property, 'id'>): Promise<Property> {
-  return await fetchWithAuth(`${API_BASE_URL}/properties`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties`, {
     method: 'POST',
     body: JSON.stringify(property),
   });
 }
 
 export async function updateProperty(id: string, property: Partial<Property>): Promise<Property> {
-  return await fetchWithAuth(`${API_BASE_URL}/properties?id=${id}`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties&id=${id}`, {
     method: 'PUT',
     body: JSON.stringify(property),
   });
 }
 
 export async function deleteProperty(id: string): Promise<void> {
-  return await fetchWithAuth(`${API_BASE_URL}/properties?id=${id}`, {
+  await fetchWithAuth(`${API_BASE_URL}?endpoint=properties&id=${id}`, {
     method: 'DELETE',
   });
 }
 
 // Bookings API
 export async function getBookings(): Promise<Booking[]> {
-  return await fetchWithAuth(`${API_BASE_URL}/bookings`);
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=bookings`);
 }
 
 export async function createBooking(booking: Omit<Booking, 'id' | 'createdAt'>): Promise<Booking> {
-  return await fetchWithAuth(`${API_BASE_URL}/bookings`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=bookings`, {
     method: 'POST',
     body: JSON.stringify({
-      property_id: booking.propertyId,
-      customer_id: booking.customerId,
-      check_in: booking.checkIn,
-      check_out: booking.checkOut,
+      propertyId: booking.propertyId,
+      customerId: booking.customerId,
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
       guests: booking.guests,
-      total_price: booking.totalPrice,
+      totalPrice: booking.totalPrice,
     }),
   });
 }
 
 export async function updateBooking(id: string, booking: Partial<Booking>): Promise<Booking> {
-  return await fetchWithAuth(`${API_BASE_URL}/bookings?id=${id}`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=bookings&id=${id}`, {
     method: 'PUT',
     body: JSON.stringify(booking),
   });
 }
 
 export async function deleteBooking(id: string): Promise<void> {
-  return await fetchWithAuth(`${API_BASE_URL}/bookings?id=${id}`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=bookings&id=${id}`, {
     method: 'DELETE',
   });
 }
 
 // Customers API
 export async function getCustomers(): Promise<Customer[]> {
-  return await fetchWithAuth(`${API_BASE_URL}/customers`);
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=customers`);
 }
 
 export async function createCustomer(customer: Omit<Customer, 'id' | 'createdAt' | 'totalBookings'>): Promise<Customer> {
-  return await fetchWithAuth(`${API_BASE_URL}/customers`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=customers`, {
     method: 'POST',
     body: JSON.stringify(customer),
   });
 }
 
 export async function updateCustomer(id: string, customer: Partial<Omit<Customer, 'id' | 'createdAt' | 'totalBookings'>>): Promise<Customer> {
-  return await fetchWithAuth(`${API_BASE_URL}/customers?id=${id}`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=customers&id=${id}`, {
     method: 'PUT',
     body: JSON.stringify(customer),
   });
 }
 
 export async function deleteCustomer(id: string): Promise<void> {
-  return await fetchWithAuth(`${API_BASE_URL}/customers?id=${id}`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=customers&id=${id}`, {
     method: 'DELETE',
   });
 }
 
 // Payments API
 export async function getPayments(): Promise<Payment[]> {
-  return await fetchWithAuth(`${API_BASE_URL}/payments`);
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=payments`);
 }
 
 export async function createPayment(payment: Omit<Payment, 'id' | 'createdAt'>): Promise<Payment> {
-  return await fetchWithAuth(`${API_BASE_URL}/payments`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=payments`, {
     method: 'POST',
     body: JSON.stringify({
-      booking_id: payment.bookingId,
-      customer_id: payment.customerId,
+      bookingId: payment.bookingId,
+      customerId: payment.customerId,
       amount: payment.amount,
-      payment_method: payment.paymentMethod,
+      paymentMethod: payment.paymentMethod,
     }),
   });
 }
 
 export async function deletePayment(id: string): Promise<void> {
-  return await fetchWithAuth(`${API_BASE_URL}/payments?id=${id}`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=payments&id=${id}`, {
     method: 'DELETE',
   });
 }
@@ -205,16 +205,18 @@ export async function deletePayment(id: string): Promise<void> {
 // Hero Settings API
 export async function getHeroSettings(): Promise<HeroSettings | null> {
   try {
-    return await fetchWithAuth(`${API_BASE_URL}/settings?category=hero`);
+    return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings&action=category&category=hero`);
   } catch (error) {
     return null;
   }
 }
 
 export async function updateHeroSettings(settings: HeroSettings): Promise<HeroSettings> {
-  return await fetchWithAuth(`${API_BASE_URL}/settings?category=hero`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings`, {
     method: 'PUT',
-    body: JSON.stringify(settings),
+    body: JSON.stringify([
+      { category: 'hero', key: 'background_image', value: settings.backgroundImage }
+    ]),
   });
 }
 
@@ -227,16 +229,26 @@ export interface MaintenanceSettings {
 
 export async function getMaintenanceSettings(): Promise<MaintenanceSettings | null> {
   try {
-    return await fetchWithAuth(`${API_BASE_URL}/settings?category=maintenance`);
+    return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings&action=maintenance`);
   } catch (error) {
     return null;
   }
 }
 
 export async function updateMaintenanceSettings(settings: MaintenanceSettings): Promise<MaintenanceSettings> {
-  return await fetchWithAuth(`${API_BASE_URL}/settings?category=maintenance`, {
+  const settingsArray = [
+    { category: 'maintenance', key: 'enabled', value: settings.enabled }
+  ];
+  if (settings.message) {
+    settingsArray.push({ category: 'maintenance', key: 'message', value: settings.message });
+  }
+  if (settings.estimated_time) {
+    settingsArray.push({ category: 'maintenance', key: 'estimated_time', value: settings.estimated_time });
+  }
+  
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=settings`, {
     method: 'PUT',
-    body: JSON.stringify(settings),
+    body: JSON.stringify(settingsArray),
   });
 }
 
@@ -294,25 +306,25 @@ export function generateICalUrl(propertyId: string): string {
 
 // Users API
 export async function getUsers(): Promise<User[]> {
-  return await fetchWithAuth(`${API_BASE_URL}/users`);
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=users`);
 }
 
 export async function createUser(user: { email: string; password: string; name: string; role: 'admin' | 'customer' }): Promise<User> {
-  return await fetchWithAuth(`${API_BASE_URL}/users`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=users`, {
     method: 'POST',
     body: JSON.stringify(user),
   });
 }
 
 export async function updateUser(id: string, user: { email?: string; name?: string; role?: 'admin' | 'customer'; password?: string }): Promise<User> {
-  return await fetchWithAuth(`${API_BASE_URL}/users?id=${id}`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=users&id=${id}`, {
     method: 'PUT',
     body: JSON.stringify(user),
   });
 }
 
 export async function deleteUser(id: string): Promise<void> {
-  return await fetchWithAuth(`${API_BASE_URL}/users?id=${id}`, {
+  return await fetchWithAuth(`${API_BASE_URL}?endpoint=users&id=${id}`, {
     method: 'DELETE',
   });
 }
