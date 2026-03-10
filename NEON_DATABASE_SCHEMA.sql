@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS properties (
   image TEXT,
   amenities TEXT[],
   available BOOLEAN DEFAULT true,
+  average_rating DECIMAL(2,1) DEFAULT 0,
+  review_count INTEGER DEFAULT 0,
   ical_export_url TEXT,
   airbnb_import_url TEXT,
   booking_import_url TEXT,

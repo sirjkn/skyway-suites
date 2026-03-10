@@ -17,6 +17,8 @@ function transformProperty(row: any) {
     image: row.image,
     amenities: row.amenities || [],
     available: row.available,
+    averageRating: row.average_rating ? parseFloat(row.average_rating) : 0,
+    reviewCount: row.review_count || 0,
     icalUrl: row.ical_export_url,
     airbnbCalendarUrl: row.airbnb_import_url,
     bookingCalendarUrl: row.booking_import_url,

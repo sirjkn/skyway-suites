@@ -26,13 +26,19 @@ export interface Property {
   bedrooms: number;
   bathrooms: number;
   guests: number;
-  category?: string; // Studio, 1 Bedroom, 2 Bedroom, 3 Bedroom
+  category: string;
   image: string;
-  images?: string[]; // Multiple images support
   amenities: string[];
   available: boolean;
+  averageRating?: number;
+  reviewCount?: number;
   icalUrl?: string;
   airbnbCalendarUrl?: string;
+  bookingCalendarUrl?: string;
+  vrboCalendarUrl?: string;
+  calendarSyncEnabled?: boolean;
+  lastCalendarSync?: string;
+  createdAt?: string;
 }
 
 export interface Booking {
