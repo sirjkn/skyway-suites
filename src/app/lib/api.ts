@@ -113,16 +113,12 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
   // In preview mode, don't even try to hit the API
   if (isPreviewMode()) {
-    // Silently fail in preview mode - no noisy console warnings
+    // Silently fail in preview mode - no warnings needed
     throw new Error('PREVIEW_MODE');
   }
 
   try {
-    // Only log in development/production, not in preview
-    if (isProduction()) {
-      console.log('🌐 API Request:', url, options.method || 'GET');
-    }
-    
+    // Silent API requests - no logging unless there's an actual error
     const response = await fetch(url, { 
       ...options, 
       headers,
@@ -223,10 +219,16 @@ export async function createProperty(property: Omit<Property, 'id'>): Promise<Pr
     calendar_sync_enabled: property.calendarSyncEnabled || false,
   };
   
-  return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties`, {
+  console.log('🔍 API - Sending to backend:', apiProperty);
+  console.log('🔍 API - Endpoint:', `${API_BASE_URL}?endpoint=properties`);
+  
+  const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=properties`, {
     method: 'POST',
     body: JSON.stringify(apiProperty),
   });
+  
+  console.log('🔍 API - Backend response:', result);
+  return result;
 }
 
 export async function updateProperty(id: string, property: Partial<Property>): Promise<Property | null> {

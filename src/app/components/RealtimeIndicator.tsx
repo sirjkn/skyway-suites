@@ -71,7 +71,7 @@ export function RealtimeIndicator() {
         if (error instanceof Error && error.name !== 'AbortError') {
           setIsConnected(false);
           setErrorMessage('API not deployed');
-          console.warn('⚠️ API not available - Deploy to Vercel to connect to Neon');
+          // Silently handle - no console warnings needed in preview
         }
       }
     };

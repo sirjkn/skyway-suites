@@ -65,7 +65,7 @@ export function AdminProperties() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createProperty({
+      console.log('🔍 SUBMITTING PROPERTY:', {
         title: formData.title,
         description: formData.description,
         price: Number(formData.price),
@@ -83,13 +83,42 @@ export function AdminProperties() {
         vrboCalendarUrl: '',
         calendarSyncEnabled: false,
       });
+      
+      const result = await createProperty({
+        title: formData.title,
+        description: formData.description,
+        price: Number(formData.price),
+        location: formData.location,
+        bedrooms: Number(formData.bedrooms),
+        bathrooms: Number(formData.bathrooms),
+        guests: Number(formData.guests),
+        category: formData.category,
+        image: formData.image || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+        amenities: formData.amenities.split(',').map(a => a.trim()),
+        available: true,
+        icalUrl: '',
+        airbnbCalendarUrl: '',
+        bookingCalendarUrl: '',
+        vrboCalendarUrl: '',
+        calendarSyncEnabled: false,
+      });
+      
+      console.log('✅ CREATE PROPERTY RESULT:', result);
+      
       toast.success('Property added successfully!');
       setShowAddDialog(false);
       resetForm();
       loadProperties();
     } catch (error) {
-      console.error('Add property error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to add property';
+      console.error('❌ ADD PROPERTY ERROR - FULL DETAILS:', error);
+      console.error('❌ ERROR TYPE:', error instanceof Error ? 'Error Object' : typeof error);
+      console.error('❌ ERROR MESSAGE:', error instanceof Error ? error.message : String(error));
+      console.error('❌ ERROR STACK:', error instanceof Error ? error.stack : 'No stack trace');
+      
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      // Show detailed error in alert AND toast
+      alert(`❌ FAILED TO ADD PROPERTY\n\n${errorMessage}\n\nCheck console (F12) for full details.`);
       toast.error(`Failed to add property: ${errorMessage}`);
     }
   };

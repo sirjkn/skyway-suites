@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // In preview mode, use mock authentication
       if (isPreviewMode) {
-        console.warn('Preview Mode: Using mock authentication (API not available)');
+        // Preview mode - no API available, use mock auth silently
         
         // Mock user data
         const mockUser: User = {
@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // In preview mode, use mock authentication
       if (isPreviewMode) {
-        console.warn('Preview Mode: Using mock authentication (API not available)');
+        // Preview mode - no API available, use mock auth silently
         
         // Mock user data
         const mockUser: User = {
