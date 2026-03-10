@@ -78,10 +78,10 @@ export function Login() {
           </div>
 
           <div className="mt-4 p-3 bg-[#F5F3F0] rounded-md text-sm text-gray-600">
-            <p className="mb-1"><strong>Development Mode:</strong></p>
-            <p>✅ Any email works for login!</p>
-            <p>✅ Use email with "admin" for admin access</p>
-            <p className="mt-2 text-xs">Real authentication works after deploying to Vercel</p>
+            <p className="mb-1"><strong>Quick Login:</strong></p>
+            <p>✅ Use any email and password to login</p>
+            <p>✅ Use email containing "admin" for admin access (e.g., admin@example.com)</p>
+            <p className="mt-2 text-xs">Note: This works in preview mode. In production, connect to Neon database for real authentication.</p>
           </div>
         </CardContent>
       </Card>
