@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Plus, Calendar, Users, CreditCard, DollarSign } from 'lucide-react';
-import { getPayments, Payment, getBookings, getCustomers } from '../../lib/api';
+import { Plus, Calendar, Users, CreditCard, DollarSign, Eye, Trash2 } from 'lucide-react';
+import { getPayments, Payment, getBookings, getCustomers, createPayment, deletePayment } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
@@ -11,6 +11,8 @@ import * as Dialog from '@radix-ui/react-dialog';
 export function AdminPayments() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [bookings, setBookings] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [formData, setFormData] = useState({
@@ -21,6 +23,7 @@ export function AdminPayments() {
   });
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [isFullyPaid, setIsFullyPaid] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     loadPayments();
@@ -194,6 +197,7 @@ export function AdminPayments() {
                   <th className="text-left py-2 px-3 font-medium">Method</th>
                   <th className="text-left py-2 px-3 font-medium">Status</th>
                   <th className="text-left py-2 px-3 font-medium">Date</th>
+                  <th className="text-left py-2 px-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -216,6 +220,38 @@ export function AdminPayments() {
                     </td>
                     <td className="py-2 px-3 text-gray-600">
                       {new Date(payment.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-2 px-3">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedPayment(payment);
+                            setShowViewDialog(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            if (confirm('Are you sure you want to delete this payment?')) {
+                              try {
+                                await deletePayment(payment.id);
+                                toast.success('Payment deleted successfully!');
+                                await loadPayments();
+                              } catch (error) {
+                                toast.error('Failed to delete payment');
+                              }
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -304,16 +340,38 @@ export function AdminPayments() {
               </div>
               <div className="flex gap-4 pt-4">
                 <Button 
-                  onClick={() => {
-                    toast.success('Payment processed! (Connect to Neon database to save)');
-                    setShowAddDialog(false);
-                    setFormData({ bookingId: '', customerId: '', amount: '', paymentMethod: 'MPesa' });
-                    setSelectedBooking(null);
+                  onClick={async () => {
+                    if (!formData.bookingId || !formData.customerId || !formData.amount) {
+                      toast.error('Please fill in all fields');
+                      return;
+                    }
+                    
+                    setIsProcessing(true);
+                    try {
+                      await createPayment({
+                        bookingId: formData.bookingId,
+                        customerId: formData.customerId,
+                        amount: parseFloat(formData.amount),
+                        paymentMethod: formData.paymentMethod,
+                        status: 'paid',
+                      });
+                      toast.success('Payment processed successfully!');
+                      await loadPayments();
+                      await getBookings().then(setBookings);
+                      setShowAddDialog(false);
+                      setFormData({ bookingId: '', customerId: '', amount: '', paymentMethod: 'MPesa' });
+                      setSelectedBooking(null);
+                    } catch (error) {
+                      toast.error('Failed to process payment');
+                      console.error('Payment error:', error);
+                    } finally {
+                      setIsProcessing(false);
+                    }
                   }}
-                  disabled={isFullyPaid}
-                  className={isFullyPaid ? 'opacity-50 cursor-not-allowed' : ''}
+                  disabled={isFullyPaid || isProcessing}
+                  className={isFullyPaid || isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
                 >
-                  Process Payment
+                  {isProcessing ? 'Processing...' : 'Process Payment'}
                 </Button>
                 <Button variant="outline" onClick={() => {
                   setShowAddDialog(false);
@@ -324,6 +382,89 @@ export function AdminPayments() {
                   Cancel
                 </Button>
               </div>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* View Payment Dialog */}
+      <Dialog.Root open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/50" />
+          <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 w-full max-w-md">
+            <Dialog.Title className="text-2xl mb-4">Payment Details</Dialog.Title>
+            <Dialog.Description className="sr-only">
+              View details of a payment
+            </Dialog.Description>
+            
+            {selectedPayment && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm mb-2">Payment ID</label>
+                  <Input
+                    value={selectedPayment.id}
+                    readOnly
+                    className="bg-gray-50 cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2">Booking ID</label>
+                  <Input
+                    value={selectedPayment.bookingId}
+                    readOnly
+                    className="bg-gray-50 cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2">Customer</label>
+                  <Input
+                    value={getCustomerName(selectedPayment.customerId)}
+                    readOnly
+                    className="bg-gray-50 cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2">Amount</label>
+                  <Input
+                    value={selectedPayment.amount}
+                    readOnly
+                    className="bg-gray-50 cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2">Payment Method</label>
+                  <Input
+                    value={selectedPayment.paymentMethod}
+                    readOnly
+                    className="bg-gray-50 cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2">Status</label>
+                  <Input
+                    value={selectedPayment.status}
+                    readOnly
+                    className="bg-gray-50 cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2">Date</label>
+                  <Input
+                    value={new Date(selectedPayment.createdAt).toLocaleDateString()}
+                    readOnly
+                    className="bg-gray-50 cursor-not-allowed"
+                  />
+                </div>
+              </div>
+            )}
+            
+            <div className="flex gap-4 pt-4">
+              <Button variant="outline" onClick={() => {
+                setShowViewDialog(false);
+                setSelectedPayment(null);
+              }}>
+                Close
+              </Button>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
