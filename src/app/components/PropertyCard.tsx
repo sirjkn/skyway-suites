@@ -10,6 +10,13 @@ interface PropertyCardProps {
 export function PropertyCard({ property }: PropertyCardProps) {
   const slug = generatePropertySlug(property.title, property.id);
   
+  console.log('🏠 PropertyCard:', {
+    id: property.id,
+    title: property.title,
+    generatedSlug: slug,
+    linkTo: `/properties/${slug}`
+  });
+  
   return (
     <Link to={`/properties/${slug}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow">

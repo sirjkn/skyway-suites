@@ -32,13 +32,17 @@ export function PropertyDetails() {
         
         // Extract the actual property ID from the slug
         const propertyId = extractPropertyId(slug);
-        console.log('🔍 PropertyDetails - Slug:', slug);
-        console.log('🔍 PropertyDetails - Extracted ID:', propertyId);
+        console.log('========================================');
+        console.log('🔍 PropertyDetails DEBUG:');
+        console.log('  - Full slug from URL:', slug);
+        console.log('  - Extracted property ID:', propertyId);
+        console.log('========================================');
         
         const data = await getProperty(propertyId);
-        console.log('✅ PropertyDetails - Data received:', data);
+        console.log('✅ Property data received:', data);
         
         if (!data) {
+          console.error('❌ No data returned from API');
           setError('Property not found');
           setLoading(false);
           return;
@@ -71,29 +75,38 @@ export function PropertyDetails() {
 
   if (loading) {
     return (
-      <div className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p>Loading...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: '#6B7C3C' }}></div>
+          <p className="text-gray-600">Loading property details...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !property) {
     return (
-      <div className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-red-500">Error: {error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!property) {
-    return (
-      <div className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p>Property not found</p>
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <div className="text-6xl mb-4">🏠</div>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: '#3a3a3a' }}>
+            {error || 'Property Not Found'}
+          </h2>
+          <p className="text-gray-600 mb-6">
+            The property you're looking for doesn't exist or has been removed.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Link to="/properties">
+              <Button style={{ backgroundColor: '#6B7C3C', color: 'white' }}>
+                Browse All Properties
+              </Button>
+            </Link>
+            <Link to="/">
+              <Button variant="outline">
+                Go Home
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     );

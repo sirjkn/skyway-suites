@@ -5,7 +5,7 @@ import { hashPassword, verifyPassword, generateToken } from './utils/auth.js';
 // Helper to transform database row to API format for properties
 function transformProperty(row: any) {
   return {
-    id: row.id,
+    id: String(row.id), // Convert to string for consistency with frontend
     title: row.title,
     description: row.description,
     price: parseFloat(row.price),
@@ -124,11 +124,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (id && typeof id === 'string') {
         if (req.method === 'GET') {
           // GET single property by ID
-          const result = await query('SELECT * FROM properties WHERE id = $1', [id]);
-          if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Property not found' });
+          try {
+            console.log('🔍 GET /api/properties - Fetching property with ID:', id);
+            
+            // Convert ID to integer if it's numeric
+            const propertyId = parseInt(id, 10);
+            if (isNaN(propertyId)) {
+              console.error('❌ Invalid property ID format:', id);
+              return res.status(400).json({ error: 'Invalid property ID format' });
+            }
+            
+            const result = await query('SELECT * FROM properties WHERE id = $1', [propertyId]);
+            console.log('📊 Query result:', { rowCount: result.rows.length });
+            
+            if (result.rows.length === 0) {
+              console.log('❌ Property not found for ID:', propertyId);
+              return res.status(404).json({ error: 'Property not found' });
+            }
+            
+            const property = transformProperty(result.rows[0]);
+            console.log('✅ Property found:', property.title);
+            return res.status(200).json(property);
+          } catch (error) {
+            console.error('❌ Error fetching property:', error);
+            return res.status(500).json({ 
+              error: 'Failed to fetch property',
+              details: error instanceof Error ? error.message : String(error)
+            });
           }
-          return res.status(200).json(transformProperty(result.rows[0]));
         }
         
         if (req.method === 'PUT') {
