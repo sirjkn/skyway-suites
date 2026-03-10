@@ -43,6 +43,19 @@ function transformBooking(row: any) {
   };
 }
 
+// Helper to transform database row to API format for payments
+function transformPayment(row: any) {
+  return {
+    id: String(row.id),
+    bookingId: String(row.booking_id),
+    customerId: String(row.customer_id),
+    amount: parseFloat(row.amount),
+    status: row.status,
+    paymentMethod: row.payment_method,
+    createdAt: row.created_at
+  };
+}
+
 // Unified API handler - routes all requests
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
@@ -369,7 +382,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Payment not found' });
           }
-          return res.status(200).json(result.rows[0]);
+          return res.status(200).json(transformPayment(result.rows[0]));
         }
         if (req.method === 'DELETE') {
           await query('DELETE FROM payments WHERE id = $1', [id]);
@@ -379,16 +392,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (req.method === 'GET') {
         const result = await query('SELECT * FROM payments ORDER BY created_at DESC');
-        return res.status(200).json(result.rows);
+        return res.status(200).json(result.rows.map(transformPayment));
       }
 
       if (req.method === 'POST') {
-        const { bookingId, customerId, amount, paymentMethod } = req.body;
+        const { bookingId, customerId, amount, paymentMethod, status } = req.body;
+        const paymentStatus = status || 'pending'; // Use provided status or default to 'pending'
         const result = await query(
           'INSERT INTO payments (booking_id, customer_id, amount, payment_method, status) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-          [bookingId, customerId, amount, paymentMethod, 'pending']
+          [bookingId, customerId, amount, paymentMethod, paymentStatus]
         );
-        return res.status(200).json(result.rows[0]);
+        
+        console.log('✅ Payment created:', result.rows[0]);
+        const transformedPayment = transformPayment(result.rows[0]);
+        console.log('✅ Transformed payment:', transformedPayment);
+        
+        return res.status(200).json(transformedPayment);
       }
     }
 

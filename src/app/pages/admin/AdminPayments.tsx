@@ -199,8 +199,8 @@ export function AdminPayments() {
               <tbody>
                 {payments.map((payment) => (
                   <tr key={payment.id} className="border-b hover:bg-gray-50 text-sm">
-                    <td className="py-2 px-3 font-mono text-xs">#{payment.id.slice(0, 8)}</td>
-                    <td className="py-2 px-3 font-mono text-xs">#{payment.bookingId.slice(0, 8)}</td>
+                    <td className="py-2 px-3 font-mono text-xs">#{payment.id?.slice(0, 8) || 'N/A'}</td>
+                    <td className="py-2 px-3 font-mono text-xs">#{payment.bookingId?.slice(0, 8) || 'N/A'}</td>
                     <td className="py-2 px-3">{getCustomerName(payment.customerId)}</td>
                     <td className="py-2 px-3 font-semibold text-green-600">${payment.amount}</td>
                     <td className="py-2 px-3">
@@ -256,7 +256,7 @@ export function AdminPayments() {
                   <option value="">Select a booking</option>
                   {bookings.map(b => (
                     <option key={b.id} value={b.id}>
-                      Booking #{b.id.slice(0, 8)} - ${b.totalPrice}
+                      Booking #{b.id?.slice(0, 8) || 'N/A'} - ${b.totalPrice}
                     </option>
                   ))}
                 </select>

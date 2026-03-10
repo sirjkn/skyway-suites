@@ -390,6 +390,7 @@ export async function createPayment(payment: Omit<Payment, 'id' | 'createdAt'>):
       customerId: payment.customerId,
       amount: payment.amount,
       paymentMethod: payment.paymentMethod,
+      status: payment.status,
     }),
   });
 }
