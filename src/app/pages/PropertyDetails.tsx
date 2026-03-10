@@ -20,7 +20,11 @@ export function PropertyDetails() {
 
   useEffect(() => {
     const loadProperty = async () => {
+      console.log('==================== PROPERTY DETAILS LOADING ====================');
+      console.log('1️⃣ Slug from useParams:', slug);
+      
       if (!slug) {
+        console.log('❌ No slug provided');
         setError('No property ID provided');
         setLoading(false);
         return;
@@ -32,14 +36,14 @@ export function PropertyDetails() {
         
         // Extract the actual property ID from the slug
         const propertyId = extractPropertyId(slug);
-        console.log('========================================');
-        console.log('🔍 PropertyDetails DEBUG:');
-        console.log('  - Full slug from URL:', slug);
-        console.log('  - Extracted property ID:', propertyId);
-        console.log('========================================');
+        console.log('2️⃣ Extracted property ID:', propertyId);
+        console.log('3️⃣ Calling getProperty with ID:', propertyId);
         
         const data = await getProperty(propertyId);
-        console.log('✅ Property data received:', data);
+        console.log('4️⃣ Property data received:', data);
+        console.log('   - Type of data:', typeof data);
+        console.log('   - Is null?', data === null);
+        console.log('   - Is undefined?', data === undefined);
         
         if (!data) {
           console.error('❌ No data returned from API');
@@ -48,13 +52,18 @@ export function PropertyDetails() {
           return;
         }
         
+        console.log('✅ SUCCESS! Setting property state with:', data);
         setProperty(data);
+        setLoading(false);
       } catch (err) {
         console.error('❌ PropertyDetails - Error loading property:', err);
+        console.error('   - Error type:', typeof err);
+        console.error('   - Error message:', err instanceof Error ? err.message : String(err));
         setError(err instanceof Error ? err.message : 'Failed to load property');
-      } finally {
         setLoading(false);
       }
+      
+      console.log('==================== PROPERTY DETAILS LOADING END ====================');
     };
 
     loadProperty();

@@ -8,14 +8,19 @@ export function generatePropertySlug(title: string, id: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric chars with hyphens
     .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
-  return `${slug}-${id}`;
+  // Use double underscore as separator to avoid conflicts with UUID hyphens
+  return `${slug}__${id}`;
 }
 
-// Extract property ID from slug (format: "title-slug-propertyId")
+// Extract property ID from slug (format: "title-slug__propertyId")
 export function extractPropertyId(slug: string): string {
-  // The ID is always the last segment after the last hyphen
-  const parts = slug.split('-');
-  return parts[parts.length - 1];
+  // The ID comes after the double underscore separator
+  const parts = slug.split('__');
+  if (parts.length >= 2) {
+    return parts[parts.length - 1];
+  }
+  // Fallback: if no separator found, return the whole slug (for backward compatibility)
+  return slug;
 }
 
 // Detect if we're in preview mode (Figma Make) vs production (Vercel)
