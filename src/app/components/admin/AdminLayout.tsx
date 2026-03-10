@@ -2,7 +2,6 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router';
 import { Building2, Home, Calendar, Users, CreditCard, Settings, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useEffect, useState } from 'react';
-import { RealtimeIndicator } from '../RealtimeIndicator';
 import { OfflineBanner } from '../OfflineBanner';
 
 export function AdminLayout() {
@@ -179,9 +178,6 @@ export function AdminLayout() {
         )}
         
         <Outlet />
-        
-        {/* Realtime Data Indicator */}
-        <RealtimeIndicator />
       </main>
     </div>
   );

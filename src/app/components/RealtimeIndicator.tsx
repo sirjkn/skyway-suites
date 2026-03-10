@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Wifi, WifiOff, Database } from 'lucide-react';
+import { Database, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { Badge } from './ui/badge';
 
 export function RealtimeIndicator() {
-  const [isConnected, setIsConnected] = useState(true);
+  const [isConnected, setIsConnected] = useState<boolean | null>(null); // null = checking
   const [lastSync, setLastSync] = useState<Date>(new Date());
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   // Check API connectivity
   useEffect(() => {
     let isMounted = true;
-    let timeoutId: NodeJS.Timeout;
 
     const checkConnection = async () => {
       // Prevent check if component unmounted
@@ -19,7 +19,7 @@ export function RealtimeIndicator() {
         const controller = new AbortController();
         const requestTimeout = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
-        const response = await fetch('/api/health', {
+        const response = await fetch('/api?endpoint=health', {
           signal: controller.signal,
           cache: 'no-cache'
         });
@@ -28,23 +28,42 @@ export function RealtimeIndicator() {
         
         if (!isMounted) return; // Check again after async operation
         
+        // Check if it's HTML (preview mode) or JSON (production)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          // In preview/development mode - API not available
+          setIsConnected(true);
+          setErrorMessage('Development Mode');
+          setLastSync(new Date());
+          return;
+        }
+        
         const data = await response.json();
-        setIsConnected(data.status === 'ok');
+        const connected = data.status === 'ok';
+        setIsConnected(connected);
+        setErrorMessage(connected ? '' : (data.error || 'Database offline'));
         setLastSync(new Date());
+        
+        // Log detailed status for debugging
+        if (!connected) {
+          console.error('🔴 Neon DB Offline:', {
+            status: data.status,
+            database: data.database,
+            error: data.error,
+            message: data.message
+          });
+        } else {
+          console.log('🟢 Neon DB Connected:', {
+            dbTimestamp: data.dbTimestamp,
+            timestamp: data.timestamp
+          });
+        }
       } catch (error) {
         if (!isMounted) return;
         
-        // In preview mode (Figma Make), API won't exist - that's ok
-        // Only set disconnected if we're in production
         if (error instanceof Error && error.name !== 'AbortError') {
-          // Check if we're in preview mode by checking the URL
-          const isPreview = window.location.hostname.includes('makeproxy') || 
-                           window.location.hostname.includes('localhost');
-          
-          if (!isPreview) {
-            setIsConnected(false);
-          }
-          // In preview mode, keep showing as connected (using mock data)
+          setIsConnected(false);
+          setErrorMessage('Connection failed');
         }
       }
     };
@@ -52,17 +71,16 @@ export function RealtimeIndicator() {
     // Check immediately on mount
     checkConnection();
 
-    // Check every 60 seconds (reduced from 30 to avoid excessive requests)
+    // Check every 30 seconds
     const interval = setInterval(() => {
       if (isMounted) {
         checkConnection();
       }
-    }, 60000);
+    }, 30000);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
-      if (timeoutId) clearTimeout(timeoutId);
     };
   }, []); // Empty dependency array - only run once on mount
 
@@ -75,33 +93,43 @@ export function RealtimeIndicator() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-6 right-6 z-50">
       <Badge
         variant={isConnected ? 'default' : 'destructive'}
-        className="flex items-center gap-2 px-3 py-2 shadow-lg"
+        className="flex items-center gap-2 px-4 py-2 shadow-xl border-2"
         style={{
-          backgroundColor: isConnected ? '#6B7C3C' : '#dc2626',
+          backgroundColor: isConnected === null ? '#6B7C3C' : (isConnected ? '#6B7C3C' : '#dc2626'),
+          borderColor: isConnected === null ? '#C9B99B' : (isConnected ? '#C9B99B' : '#ef4444'),
           color: 'white'
         }}
       >
-        {isConnected ? (
+        {isConnected === null ? (
           <>
-            <Database className="w-4 h-4 animate-pulse" />
-            <span className="text-xs font-medium">Realtime • Neon DB</span>
-            <Wifi className="w-3 h-3" />
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-xs font-medium">Checking...</span>
+          </>
+        ) : isConnected ? (
+          <>
+            <CheckCircle2 className="w-4 h-4" />
+            <Database className="w-4 h-4" />
+            <span className="text-xs font-medium">Neon DB Connected</span>
           </>
         ) : (
           <>
-            <WifiOff className="w-4 h-4" />
-            <span className="text-xs font-medium">Offline</span>
+            <AlertCircle className="w-4 h-4" />
+            <span className="text-xs font-medium">Database Offline</span>
           </>
         )}
       </Badge>
-      {isConnected && (
-        <p className="text-xs text-gray-500 mt-1 text-right">
-          Last sync: {formatTime(lastSync)}
-        </p>
-      )}
+      <div className="text-xs text-gray-600 mt-1 text-right bg-white/90 px-2 py-1 rounded shadow">
+        {isConnected ? (
+          <span className="text-green-700">✓ Last sync: {formatTime(lastSync)}</span>
+        ) : isConnected === false ? (
+          <span className="text-red-700">✗ {errorMessage}</span>
+        ) : (
+          <span className="text-gray-600">Connecting...</span>
+        )}
+      </div>
     </div>
   );
 }

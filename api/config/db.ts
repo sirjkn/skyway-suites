@@ -13,6 +13,7 @@ export function getPool(): Pool {
     
     console.log('🔌 Initializing Neon serverless database connection...');
     console.log('📍 Connection URL present:', !!connectionString);
+    console.log('📍 Connection URL (masked):', connectionString?.replace(/:[^:@]+@/, ':****@'));
     console.log('🌐 Environment:', process.env.VERCEL ? 'Vercel Production' : 'Development');
     
     pool = new Pool({
@@ -22,7 +23,10 @@ export function getPool(): Pool {
       connectionTimeoutMillis: ENV.DB_POOL.connectionTimeoutMillis,
     });
     
-    console.log('✅ Neon serverless database pool initialized');
+    // Test connection on initialization
+    pool.query('SELECT NOW()')
+      .then(() => console.log('✅ Neon serverless database pool initialized and tested'))
+      .catch((err) => console.error('❌ Neon database connection test failed:', err.message));
   }
   return pool;
 }

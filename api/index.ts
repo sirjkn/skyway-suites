@@ -47,11 +47,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // HEALTH CHECK ENDPOINTS
     // ============================================
     if (endpoint === 'health' || !endpoint) {
-      return res.status(200).json({ 
-        status: 'ok', 
-        message: 'Skyway Suites API is running',
-        timestamp: new Date().toISOString() 
-      });
+      try {
+        // Actually test the database connection
+        const result = await query('SELECT NOW() as current_time');
+        const dbTime = result.rows[0]?.current_time;
+        
+        return res.status(200).json({ 
+          status: 'ok', 
+          database: 'connected',
+          message: 'Skyway Suites API is running',
+          timestamp: new Date().toISOString(),
+          dbTimestamp: dbTime
+        });
+      } catch (dbError) {
+        console.error('❌ Database health check failed:', dbError);
+        return res.status(503).json({ 
+          status: 'error',
+          database: 'disconnected', 
+          message: 'Database connection failed',
+          error: dbError instanceof Error ? dbError.message : String(dbError),
+          timestamp: new Date().toISOString() 
+        });
+      }
     }
 
     // ============================================
