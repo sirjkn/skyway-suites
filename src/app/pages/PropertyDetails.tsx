@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router';
 import { MapPin, Users, Bed, Bath, Wifi, Check, Tag } from 'lucide-react';
-import { getProperty, Property } from '../lib/api';
+import { getProperty, Property, createBooking } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -56,17 +56,51 @@ export function PropertyDetails() {
     fetchProperty();
   }, [id]);
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!user) {
       toast.error('Please login to make a booking');
       return;
     }
-    if (!checkIn || !checkOut) {
+    if (!checkIn || !checkOut || !id || !property) {
       toast.error('Please select check-in and check-out dates');
       return;
     }
-    // TODO: Connect to your Neon database to create booking
-    toast.success('Booking request submitted! (Connect to Neon database to save)');
+    
+    // Calculate total price with discounts
+    const numberOfDays = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (numberOfDays <= 0) {
+      toast.error('Check-out must be after check-in');
+      return;
+    }
+    
+    const basePrice = property.price * numberOfDays;
+    let discountPercent = 0;
+    if (numberOfDays >= 30) {
+      discountPercent = 8;
+    } else if (numberOfDays >= 7) {
+      discountPercent = 2;
+    }
+    const discountAmount = basePrice * (discountPercent / 100);
+    const totalPrice = basePrice - discountAmount;
+    
+    // Connect to your Neon database to create booking
+    try {
+      const response = await createBooking({
+        propertyId: id,
+        customerId: user.id,
+        checkIn: checkIn,
+        checkOut: checkOut,
+        guests: parseInt(guests),
+        totalPrice: totalPrice,
+        status: 'pending',
+      });
+      toast.success('Booking request submitted successfully!');
+      console.log('Booking response:', response);
+    } catch (err) {
+      console.error('Failed to create booking:', err);
+      toast.error('Failed to create booking');
+    }
   };
 
   if (loading) {

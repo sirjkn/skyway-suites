@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Plus, Home, Users, Calendar, DollarSign, Trash2, Tag } from 'lucide-react';
-import { getBookings, Booking, getProperties, getCustomers, getPayments, Payment, createPayment, deleteBooking } from '../../lib/api';
+import { getBookings, Booking, getProperties, getCustomers, getPayments, Payment, createPayment, deleteBooking, createBooking } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
@@ -136,6 +136,26 @@ export function AdminBookings() {
       } catch (error) {
         toast.error('Failed to delete booking');
       }
+    }
+  };
+
+  const handleCreateBooking = async () => {
+    try {
+      const newBooking = await createBooking({
+        propertyId: formData.propertyId,
+        customerId: formData.customerId,
+        checkIn: formData.checkIn,
+        checkOut: formData.checkOut,
+        guests: parseInt(formData.guests),
+        totalPrice: parseFloat(formData.totalPrice),
+        status: 'pending',
+      });
+
+      toast.success('Booking created successfully!');
+      setShowAddDialog(false);
+      loadBookings();
+    } catch (error) {
+      toast.error('Failed to create booking');
     }
   };
 
@@ -295,35 +315,36 @@ export function AdminBookings() {
                   searchPlaceholder="Search customers..."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm mb-2">Check-in</label>
+                  <label className="block text-xs mb-1.5">Check-in</label>
                   <Input
                     type="date"
                     value={formData.checkIn}
                     onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
                     required
+                    className="h-9 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm mb-2">Check-out</label>
+                  <label className="block text-xs mb-1.5">Check-out</label>
                   <Input
                     type="date"
                     value={formData.checkOut}
                     onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
                     required
+                    className="h-9 text-sm"
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm mb-2">Guests</label>
+                  <label className="block text-xs mb-1.5">Guests</label>
                   <Input
                     type="number"
                     value={formData.guests}
                     onChange={(e) => setFormData({ ...formData, guests: e.target.value })}
                     min="1"
                     required
+                    className="h-9 text-sm"
                   />
                 </div>
               </div>
@@ -386,10 +407,7 @@ export function AdminBookings() {
               })()}
 
               <div className="flex gap-4 pt-4">
-                <Button onClick={() => {
-                  toast.success('Booking created! (Connect to Neon database to save)');
-                  setShowAddDialog(false);
-                }}>
+                <Button onClick={handleCreateBooking}>
                   Create Booking
                 </Button>
                 <Button variant="outline" onClick={() => setShowAddDialog(false)}>
