@@ -102,6 +102,9 @@ export async function getPropertyById(id: string): Promise<Property> {
   return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties&id=${id}`);
 }
 
+// Alias for backward compatibility
+export const getProperty = getPropertyById;
+
 export async function createProperty(property: Omit<Property, 'id'>): Promise<Property> {
   return await fetchWithAuth(`${API_BASE_URL}?endpoint=properties`, {
     method: 'POST',
