@@ -18,6 +18,7 @@ import { AdminPayments } from "./pages/admin/AdminPayments";
 import { AdminSettings } from "./pages/admin/AdminSettings";
 import { MaintenanceWrapper } from "./components/MaintenanceWrapper";
 import { RealtimeIndicator } from "./components/RealtimeIndicator";
+import { DatabaseStatus } from "./components/DatabaseStatus";
 
 // Root component that provides auth context to all routes
 function Root() {
@@ -26,6 +27,7 @@ function Root() {
       <MaintenanceWrapper>
         <Outlet />
         <RealtimeIndicator />
+        <DatabaseStatus />
       </MaintenanceWrapper>
     </AuthProvider>
   );
