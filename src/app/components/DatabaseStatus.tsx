@@ -108,7 +108,7 @@ export function DatabaseStatus() {
       )}
 
       {/* Status indicator */}
-      <div className="relative w-16 h-16 flex items-center justify-center cursor-pointer">
+      <div className="relative w-6 h-6 flex items-center justify-center cursor-pointer">
         {isConnected === null ? (
           <>
             {/* Outermost pulsing ring - slowest */}
@@ -119,18 +119,18 @@ export function DatabaseStatus() {
             
             {/* Second pulsing ring */}
             <div 
-              className="absolute inset-1 rounded-full bg-gray-500/20 animate-pulse"
+              className="absolute inset-0.5 rounded-full bg-gray-500/20 animate-pulse"
               style={{ animationDuration: '2s', animationDelay: '0.5s' }}
             ></div>
             
             {/* Third ring with ping effect */}
-            <div className="absolute inset-3 rounded-full bg-gray-500/30 animate-ping"></div>
+            <div className="absolute inset-1 rounded-full bg-gray-500/30 animate-ping"></div>
             
             {/* Middle glow ring */}
-            <div className="absolute inset-4 rounded-full bg-gray-500/40 blur-md"></div>
+            <div className="absolute inset-1.5 rounded-full bg-gray-500/40 blur-sm"></div>
             
             {/* Inner bright core */}
-            <div className="relative w-6 h-6 rounded-full bg-gray-500 shadow-2xl shadow-gray-500/60 animate-pulse" style={{ animationDuration: '2s' }}></div>
+            <div className="relative w-2 h-2 rounded-full bg-gray-500 shadow-lg shadow-gray-500/60 animate-pulse" style={{ animationDuration: '2s' }}></div>
           </>
         ) : isConnected ? (
           <>
@@ -142,18 +142,18 @@ export function DatabaseStatus() {
             
             {/* Second pulsing ring */}
             <div 
-              className="absolute inset-1 rounded-full bg-green-500/20 animate-pulse"
+              className="absolute inset-0.5 rounded-full bg-green-500/20 animate-pulse"
               style={{ animationDuration: '2s', animationDelay: '0.5s' }}
             ></div>
             
             {/* Third ring with ping effect */}
-            <div className="absolute inset-3 rounded-full bg-green-500/30 animate-ping"></div>
+            <div className="absolute inset-1 rounded-full bg-green-500/30 animate-ping"></div>
             
             {/* Middle glow ring */}
-            <div className="absolute inset-4 rounded-full bg-green-500/40 blur-md"></div>
+            <div className="absolute inset-1.5 rounded-full bg-green-500/40 blur-sm"></div>
             
             {/* Inner bright core */}
-            <div className="relative w-6 h-6 rounded-full bg-green-500 shadow-2xl shadow-green-500/60 animate-pulse" style={{ animationDuration: '2s' }}></div>
+            <div className="relative w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/60 animate-pulse" style={{ animationDuration: '2s' }}></div>
           </>
         ) : (
           <>
@@ -161,14 +161,14 @@ export function DatabaseStatus() {
             <div className="absolute inset-0 rounded-full bg-red-500/10"></div>
             
             {/* Second ring */}
-            <div className="absolute inset-1 rounded-full bg-red-500/20"></div>
+            <div className="absolute inset-0.5 rounded-full bg-red-500/20"></div>
             
             {/* Middle glow ring */}
-            <div className="absolute inset-4 rounded-full bg-red-500/40 blur-md"></div>
+            <div className="absolute inset-1.5 rounded-full bg-red-500/40 blur-sm"></div>
             
             {/* Inner solid dot - slow pulse to indicate trying to reconnect */}
             <div 
-              className="relative w-6 h-6 rounded-full bg-red-500 shadow-2xl shadow-red-500/60 animate-pulse"
+              className="relative w-2 h-2 rounded-full bg-red-500 shadow-lg shadow-red-500/60 animate-pulse"
               style={{ animationDuration: '3s' }}
             ></div>
           </>

@@ -196,6 +196,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
+    // Cloudinary Settings
+    if (category === 'cloudinary') {
+      if (req.method === 'GET') {
+        const result = await query(
+          "SELECT key, value FROM settings WHERE category = 'cloudinary'"
+        );
+
+        const settings: { [key: string]: string } = {};
+        result.rows.forEach((row: any) => {
+          settings[row.key] = row.value;
+        });
+
+        return res.status(200).json(settings);
+      } else if (req.method === 'PUT') {
+        const settingsData = req.body;
+
+        for (const [key, value] of Object.entries(settingsData)) {
+          await query(
+            `INSERT INTO settings (category, key, value) 
+             VALUES ('cloudinary', $1, $2) 
+             ON CONFLICT (category, key) 
+             DO UPDATE SET value = $2, updated_at = CURRENT_TIMESTAMP`,
+            [key, value]
+          );
+        }
+
+        return res.status(200).json({ message: 'Settings updated successfully' });
+      }
+    }
+
     return res.status(400).json({ error: 'Invalid category' });
   } catch (error) {
     console.error('Error handling settings:', error);

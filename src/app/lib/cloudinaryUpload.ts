@@ -1,4 +1,4 @@
-// Cloudinary upload utility
+// Cloudinary upload utility with signed uploads
 
 interface CloudinaryUploadResponse {
   url: string;
@@ -10,26 +10,134 @@ interface CloudinaryUploadResponse {
   bytes: number;
 }
 
+interface CloudinaryConfig {
+  cloudName: string;
+  apiKey: string;
+  apiSecret: string;
+}
+
+// Default Cloudinary credentials
+const DEFAULT_CLOUDINARY_CONFIG: CloudinaryConfig = {
+  cloudName: 'dc5d5zfos',
+  apiKey: '382325619466152',
+  apiSecret: '-TZoR9QSDk1lMfEOdQc-Tv59f9A',
+};
+
 /**
- * Uploads an image to Cloudinary
+ * Gets Cloudinary configuration from database settings or defaults
+ */
+export async function getCloudinaryConfig(): Promise<CloudinaryConfig> {
+  try {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+    const response = await fetch(`${API_BASE_URL}/settings?category=cloudinary`);
+    
+    if (response.ok) {
+      const settings = await response.json();
+      
+      // If we have all settings from database, use them
+      if (settings.cloud_name && settings.api_key && settings.api_secret) {
+        return {
+          cloudName: settings.cloud_name,
+          apiKey: settings.api_key,
+          apiSecret: settings.api_secret,
+        };
+      }
+    }
+  } catch (error) {
+    console.log('Could not fetch Cloudinary settings from database, using defaults');
+  }
+  
+  // Fall back to default configuration
+  return DEFAULT_CLOUDINARY_CONFIG;
+}
+
+/**
+ * Saves Cloudinary configuration to database
+ */
+export async function saveCloudinaryConfig(config: CloudinaryConfig): Promise<void> {
+  try {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+    const response = await fetch(`${API_BASE_URL}/settings?category=cloudinary`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cloud_name: config.cloudName,
+        api_key: config.apiKey,
+        api_secret: config.apiSecret,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save Cloudinary settings');
+    }
+  } catch (error) {
+    console.error('Error saving Cloudinary config:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generates signature for signed Cloudinary upload
+ */
+async function generateSignature(
+  paramsToSign: Record<string, string>,
+  apiSecret: string
+): Promise<string> {
+  // Sort parameters alphabetically
+  const sortedParams = Object.keys(paramsToSign)
+    .sort()
+    .map(key => `${key}=${paramsToSign[key]}`)
+    .join('&');
+  
+  const stringToSign = `${sortedParams}${apiSecret}`;
+  
+  // Use Web Crypto API to generate SHA-1 hash
+  const encoder = new TextEncoder();
+  const data = encoder.encode(stringToSign);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  return hashHex;
+}
+
+/**
+ * Uploads an image to Cloudinary using signed upload
  * @param dataUrl - Base64 data URL of the image
- * @param cloudName - Your Cloudinary cloud name
- * @param uploadPreset - Your Cloudinary upload preset
+ * @param config - Optional Cloudinary configuration (uses defaults if not provided)
  * @returns Promise with Cloudinary response containing the image URL
  */
 export async function uploadToCloudinary(
   dataUrl: string,
-  cloudName: string = 'demo', // Replace with your cloud name
-  uploadPreset: string = 'ml_default' // Replace with your upload preset
+  config?: CloudinaryConfig
 ): Promise<CloudinaryUploadResponse> {
+  // Get configuration (from parameter or fetch from database)
+  const cloudinaryConfig = config || await getCloudinaryConfig();
+  
+  const { cloudName, apiKey, apiSecret } = cloudinaryConfig;
+  
+  // Prepare upload parameters
+  const timestamp = Math.round(Date.now() / 1000).toString();
+  const folder = 'skyway-suites';
+  
+  const paramsToSign: Record<string, string> = {
+    timestamp,
+    folder,
+  };
+  
+  // Generate signature
+  const signature = await generateSignature(paramsToSign, apiSecret);
+  
   const formData = new FormData();
   
   // Convert data URL to blob
   const blob = await fetch(dataUrl).then(res => res.blob());
   
   formData.append('file', blob);
-  formData.append('upload_preset', uploadPreset);
-  formData.append('folder', 'skyway-suites'); // Optional: organize uploads in folders
+  formData.append('timestamp', timestamp);
+  formData.append('folder', folder);
+  formData.append('api_key', apiKey);
+  formData.append('signature', signature);
   
   try {
     const response = await fetch(
@@ -60,30 +168,4 @@ export async function uploadToCloudinary(
     console.error('Cloudinary upload error:', error);
     throw error;
   }
-}
-
-/**
- * Gets Cloudinary configuration from environment or settings
- */
-export function getCloudinaryConfig() {
-  // Try to get from environment variables first
-  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-  
-  // Fall back to localStorage (saved from settings)
-  const savedCloudName = localStorage.getItem('cloudinary_cloud_name');
-  const savedUploadPreset = localStorage.getItem('cloudinary_upload_preset');
-  
-  return {
-    cloudName: cloudName || savedCloudName || '',
-    uploadPreset: uploadPreset || savedUploadPreset || '',
-  };
-}
-
-/**
- * Saves Cloudinary configuration to localStorage
- */
-export function saveCloudinaryConfig(cloudName: string, uploadPreset: string) {
-  localStorage.setItem('cloudinary_cloud_name', cloudName);
-  localStorage.setItem('cloudinary_upload_preset', uploadPreset);
 }

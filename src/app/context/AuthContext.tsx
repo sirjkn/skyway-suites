@@ -23,12 +23,17 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 // Helper to detect if we're in Figma Make preview
 const isInPreviewMode = () => {
   const hostname = window.location.hostname;
+  // Only show preview mode if we're in Figma Make AND user is not logged in with a real account
   return !hostname.includes('vercel.app') && !hostname.includes('localhost');
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const isPreviewMode = isInPreviewMode();
+  const [hasRealUsers, setHasRealUsers] = useState(false);
+  const baseIsPreviewMode = isInPreviewMode();
+  
+  // Only show preview mode if no real users exist
+  const isPreviewMode = baseIsPreviewMode && !hasRealUsers;
 
   // Check for existing token on mount
   useEffect(() => {
@@ -37,7 +42,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = localStorage.getItem('user');
       if (userData) {
         try {
-          setUser(JSON.parse(userData));
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          // If there's a real user (non-preview token), mark as having real users
+          if (!token.startsWith('preview-token-')) {
+            setHasRealUsers(true);
+          }
         } catch (error) {
           console.error('Failed to parse user data:', error);
           localStorage.removeItem('token');
@@ -102,6 +112,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      // Mark that we have real users since we successfully authenticated
+      setHasRealUsers(true);
     } catch (error) {
       console.error('Login error:', error);
       throw error;

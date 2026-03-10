@@ -19,7 +19,8 @@ export function AdminSettings() {
   
   // Cloudinary configuration
   const [cloudinaryCloudName, setCloudinaryCloudName] = useState('');
-  const [cloudinaryUploadPreset, setCloudinaryUploadPreset] = useState('');
+  const [cloudinaryApiKey, setCloudinaryApiKey] = useState('');
+  const [cloudinaryApiSecret, setCloudinaryApiSecret] = useState('');
 
   // Email Integration State
   const [emailProvider, setEmailProvider] = useState('sendgrid');
@@ -46,15 +47,28 @@ export function AdminSettings() {
     loadCloudinaryConfig();
   }, []);
 
-  const loadCloudinaryConfig = () => {
-    const config = getCloudinaryConfig();
-    setCloudinaryCloudName(config.cloudName);
-    setCloudinaryUploadPreset(config.uploadPreset);
+  const loadCloudinaryConfig = async () => {
+    try {
+      const config = await getCloudinaryConfig();
+      setCloudinaryCloudName(config.cloudName);
+      setCloudinaryApiKey(config.apiKey);
+      setCloudinaryApiSecret(config.apiSecret);
+    } catch (error) {
+      console.error('Failed to load Cloudinary config');
+    }
   };
 
-  const handleSaveCloudinaryConfig = () => {
-    saveCloudinaryConfig(cloudinaryCloudName, cloudinaryUploadPreset);
-    toast.success('Cloudinary configuration saved!');
+  const handleSaveCloudinaryConfig = async () => {
+    try {
+      await saveCloudinaryConfig({
+        cloudName: cloudinaryCloudName,
+        apiKey: cloudinaryApiKey,
+        apiSecret: cloudinaryApiSecret,
+      });
+      toast.success('Cloudinary configuration saved!');
+    } catch (error) {
+      toast.error('Failed to save Cloudinary settings');
+    }
   };
 
   const loadHeroSettings = async () => {
@@ -84,7 +98,7 @@ export function AdminSettings() {
     if (!file) return;
 
     // Check if cloudinary is configured
-    if (!cloudinaryCloudName || !cloudinaryUploadPreset) {
+    if (!cloudinaryCloudName || !cloudinaryApiKey || !cloudinaryApiSecret) {
       toast.error('Please configure Cloudinary settings first!');
       return;
     }
@@ -103,8 +117,11 @@ export function AdminSettings() {
       // Upload to Cloudinary
       const uploadResponse = await uploadToCloudinary(
         compressedImage.dataUrl,
-        cloudinaryCloudName,
-        cloudinaryUploadPreset
+        {
+          cloudName: cloudinaryCloudName,
+          apiKey: cloudinaryApiKey,
+          apiSecret: cloudinaryApiSecret,
+        }
       );
 
       setHeroBackgroundUrl(uploadResponse.secureUrl);
@@ -266,11 +283,19 @@ export function AdminSettings() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm mb-1.5 font-medium">Upload Preset</label>
+                  <label className="block text-sm mb-1.5 font-medium">API Key</label>
                   <Input 
-                    value={cloudinaryUploadPreset}
-                    onChange={(e) => setCloudinaryUploadPreset(e.target.value)}
-                    placeholder="your-upload-preset"
+                    value={cloudinaryApiKey}
+                    onChange={(e) => setCloudinaryApiKey(e.target.value)}
+                    placeholder="your-api-key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1.5 font-medium">API Secret</label>
+                  <Input 
+                    value={cloudinaryApiSecret}
+                    onChange={(e) => setCloudinaryApiSecret(e.target.value)}
+                    placeholder="your-api-secret"
                   />
                 </div>
                 <div className="p-3 bg-blue-50 rounded-md text-xs">
