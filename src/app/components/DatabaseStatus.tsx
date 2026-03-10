@@ -4,6 +4,7 @@ export function DatabaseStatus() {
   const [isConnected, setIsConnected] = useState<boolean | null>(null); // null = checking
   const [showTooltip, setShowTooltip] = useState(false);
   const [isProduction, setIsProduction] = useState(false);
+  const [errorDetails, setErrorDetails] = useState<string>('');
 
   useEffect(() => {
     // Detect if we're in production (Vercel) or development (Figma Make)
@@ -24,6 +25,7 @@ export function DatabaseStatus() {
 
   const checkConnection = async () => {
     try {
+      console.log('🔍 Checking database connection...');
       const response = await fetch('/api/health', {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
@@ -31,11 +33,13 @@ export function DatabaseStatus() {
       
       // Get response as text first
       const responseText = await response.text();
+      console.log('📥 Health check response status:', response.status);
       
       // Try to parse as JSON
       let data;
       try {
         data = JSON.parse(responseText);
+        console.log('📊 Health check data:', data);
       } catch (parseError) {
         // If it's HTML (like a 404 page), API route not found
         console.warn('Health check: API route not available (may be in preview mode)');
@@ -43,10 +47,20 @@ export function DatabaseStatus() {
         return;
       }
       
-      setIsConnected(data.status === 'ok' && data.database === 'connected');
+      const connected = data.status === 'ok' && data.database === 'connected';
+      setIsConnected(connected);
+      
+      if (!connected) {
+        setErrorDetails(data.error || 'Unknown error');
+        console.error('❌ Database disconnected:', data.error);
+      } else {
+        setErrorDetails('');
+        console.log('✅ Database connected');
+      }
     } catch (error) {
-      console.warn('Database health check failed:', error);
+      console.error('❌ Database health check failed:', error);
       setIsConnected(false);
+      setErrorDetails(error instanceof Error ? error.message : String(error));
     }
   };
 
@@ -58,7 +72,7 @@ export function DatabaseStatus() {
     >
       {/* Tooltip */}
       {showTooltip && (
-        <div className="absolute bottom-full left-0 mb-3 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-xl whitespace-nowrap animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="absolute bottom-full left-0 mb-3 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-xl whitespace-nowrap animate-in fade-in slide-in-from-bottom-2 duration-200 max-w-md">
           {isConnected === null ? (
             <>
               <div className="font-semibold flex items-center gap-2">
@@ -79,6 +93,11 @@ export function DatabaseStatus() {
                 <span className="text-red-400">✗</span> Database Disconnected
               </div>
               <div className="text-xs text-gray-300 mt-1">Attempting to reconnect...</div>
+              {errorDetails && (
+                <div className="text-xs text-red-300 mt-2 whitespace-normal max-w-xs">
+                  Error: {errorDetails}
+                </div>
+              )}
             </>
           )}
           {/* Tooltip arrow */}

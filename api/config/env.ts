@@ -6,7 +6,7 @@
 
 export const ENV = {
   // Neon Database Connection
-  DATABASE_URL: 'postgresql://neondb_owner:npg_aJ8wfM4RIeTQ@ep-floral-leaf-ag3dpaau-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+  DATABASE_URL: 'postgresql://neondb_owner:npg_aJ8wfM4RIeTQ@ep-floral-leaf-ag3dpaau-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require',
   
   // JWT Authentication Secret
   JWT_SECRET: 'skyway-suites-secret-key-2026-production-change-this',

@@ -18,8 +18,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Test database connection
-    const result = await query('SELECT NOW() as time, version() as version');
+    console.log('🏥 Health check starting...');
+    
+    // Test database connection with timeout
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database query timeout after 5 seconds')), 5000);
+    });
+    
+    const queryPromise = query('SELECT NOW() as time, version() as version');
+    
+    const result = await Promise.race([queryPromise, timeoutPromise]) as any;
+    
+    console.log('✅ Health check successful');
     
     return res.status(200).json({
       status: 'ok',
@@ -27,16 +37,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       message: 'Skyway Suites API is running',
       timestamp: new Date().toISOString(),
       dbTime: result.rows[0].time,
-      dbVersion: result.rows[0].version.split(' ')[0]
+      dbVersion: result.rows[0].version.split(' ')[0],
+      environment: process.env.VERCEL ? 'production' : 'development'
     });
   } catch (error) {
-    console.error('Health check failed:', error);
-    return res.status(500).json({
+    console.error('❌ Health check failed:', error);
+    
+    // Provide detailed error information
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorDetails = {
       status: 'error',
       database: 'disconnected',
       message: 'Database connection failed',
-      error: String(error),
-      timestamp: new Date().toISOString()
-    });
+      error: errorMessage,
+      timestamp: new Date().toISOString(),
+      environment: process.env.VERCEL ? 'production' : 'development',
+      troubleshooting: {
+        checkDatabaseUrl: 'Verify DATABASE_URL is set in Vercel environment variables',
+        checkNeonStatus: 'Verify Neon database is active and not suspended',
+        checkSSL: 'Ensure SSL connection is properly configured',
+        checkPooler: 'Verify using Neon pooler endpoint (ends with -pooler)'
+      }
+    };
+    
+    return res.status(500).json(errorDetails);
   }
 }
