@@ -122,6 +122,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (endpoint === 'properties') {
       // Item operations
       if (id && typeof id === 'string') {
+        if (req.method === 'GET') {
+          // GET single property by ID
+          const result = await query('SELECT * FROM properties WHERE id = $1', [id]);
+          if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Property not found' });
+          }
+          return res.status(200).json(transformProperty(result.rows[0]));
+        }
+        
         if (req.method === 'PUT') {
           // Support partial updates - only update fields that are provided
           const updates: string[] = [];

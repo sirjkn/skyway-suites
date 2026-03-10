@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { MapPin, Users, Bed, Bath } from 'lucide-react';
-import { Property } from '../lib/api';
+import { Property, generatePropertySlug } from '../lib/api';
 import { Card, CardContent } from './ui/card';
 
 interface PropertyCardProps {
@@ -8,8 +8,10 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property }: PropertyCardProps) {
+  const slug = generatePropertySlug(property.title, property.id);
+  
   return (
-    <Link to={`/properties/${property.id}`}>
+    <Link to={`/properties/${slug}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow">
         <div className="relative">
           <div

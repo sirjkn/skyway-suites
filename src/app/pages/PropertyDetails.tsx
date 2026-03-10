@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { MapPin, Users, Bed, Bath, Wifi, Check, Tag } from 'lucide-react';
-import { getProperty, Property } from '../lib/api';
+import { getProperty, Property, extractPropertyId } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 
 export function PropertyDetails() {
-  const { id } = useParams<{ id: string }>();
+  const { id: slug } = useParams<{ id: string }>();
   const [property, setProperty] = useState<Property | null>(null);
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
@@ -17,10 +17,18 @@ export function PropertyDetails() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (id) {
-      getProperty(id).then(setProperty);
+    if (slug) {
+      // Extract the actual property ID from the slug
+      const propertyId = extractPropertyId(slug);
+      console.log('🔍 Loading property with ID:', propertyId, 'from slug:', slug);
+      getProperty(propertyId).then((data) => {
+        console.log('✅ Property loaded:', data);
+        setProperty(data);
+      }).catch((error) => {
+        console.error('❌ Failed to load property:', error);
+      });
     }
-  }, [id]);
+  }, [slug]);
 
   const handleBooking = () => {
     if (!user) {

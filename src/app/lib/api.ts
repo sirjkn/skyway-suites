@@ -2,6 +2,22 @@
 // Backend API URL - automatically uses Vercel's API routes in production
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+// Generate URL-friendly slug from property title and ID
+export function generatePropertySlug(title: string, id: string): string {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric chars with hyphens
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+  return `${slug}-${id}`;
+}
+
+// Extract property ID from slug (format: "title-slug-propertyId")
+export function extractPropertyId(slug: string): string {
+  // The ID is always the last segment after the last hyphen
+  const parts = slug.split('-');
+  return parts[parts.length - 1];
+}
+
 // Detect if we're in preview mode (Figma Make) vs production (Vercel)
 function isPreviewMode(): boolean {
   const hostname = window.location.hostname;
