@@ -360,7 +360,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (req.method === 'GET') {
-        const result = await query('SELECT id, name, email, phone, created_at FROM users WHERE role = $1 ORDER BY created_at DESC', ['customer']);
+        const result = await query('SELECT id, name, email, phone, created_at FROM users WHERE role = $1 AND name IS NOT NULL AND email IS NOT NULL ORDER BY created_at DESC', ['customer']);
         return res.status(200).json(result.rows);
       }
 
