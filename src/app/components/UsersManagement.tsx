@@ -154,42 +154,44 @@ export function UsersManagement() {
                 </thead>
                 <tbody>
                   {users.map((user) => (
-                    <tr key={user.id} className="border-b hover:bg-gray-50 text-sm">
-                      <td className="py-2 px-3">{user.name}</td>
-                      <td className="py-2 px-3 text-gray-600">{user.email}</td>
-                      <td className="py-2 px-3">
-                        <span className={`px-2 py-0.5 ${getRoleBadgeColor(user.role)} rounded text-xs capitalize`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="py-2 px-3">
-                        <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
-                          Active
-                        </span>
-                      </td>
-                      <td className="py-2 px-3">
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs"
-                            onClick={() => openEditDialog(user)}
-                          >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => handleDeleteUser(user.id)}
-                          >
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
+                    user && user.id && user.email ? (
+                      <tr key={user.id} className="border-b hover:bg-gray-50 text-sm">
+                        <td className="py-2 px-3">{user.name || 'N/A'}</td>
+                        <td className="py-2 px-3 text-gray-600">{user.email}</td>
+                        <td className="py-2 px-3">
+                          <span className={`px-2 py-0.5 ${getRoleBadgeColor(user.role)} rounded text-xs capitalize`}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3">
+                          <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
+                            Active
+                          </span>
+                        </td>
+                        <td className="py-2 px-3">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={() => openEditDialog(user)}
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => handleDeleteUser(user.id)}
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : null
                   ))}
                 </tbody>
               </table>
