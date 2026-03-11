@@ -51,7 +51,7 @@ CREATE TABLE customers (
 CREATE TABLE bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
-  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  customer_id UUID REFERENCES users(id) ON DELETE CASCADE,
   check_in DATE NOT NULL,
   check_out DATE NOT NULL,
   guests INTEGER NOT NULL,
@@ -129,10 +129,10 @@ INSERT INTO customers (name, email, phone) VALUES
 -- Sample bookings
 INSERT INTO bookings (property_id, customer_id, check_in, check_out, guests, total_price, status) VALUES
 ((SELECT id FROM properties WHERE title = 'Luxury Downtown Apartment' LIMIT 1), 
- (SELECT id FROM customers WHERE email = 'john@example.com' LIMIT 1),
+ (SELECT id FROM users WHERE email = 'customer@test.com' LIMIT 1),
  '2026-03-15', '2026-03-20', 2, 750.00, 'confirmed'),
 ((SELECT id FROM properties WHERE title = 'Cozy Beach House' LIMIT 1),
- (SELECT id FROM customers WHERE email = 'jane@example.com' LIMIT 1),
+ (SELECT id FROM users WHERE email = 'customer@test.com' LIMIT 1),
  '2026-04-10', '2026-04-17', 4, 1400.00, 'pending');
 
 -- Sample payments

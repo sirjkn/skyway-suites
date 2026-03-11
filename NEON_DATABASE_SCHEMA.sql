@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS customers (
 CREATE TABLE IF NOT EXISTS bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
-  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  customer_id UUID REFERENCES users(id) ON DELETE CASCADE,
   check_in DATE NOT NULL,
   check_out DATE NOT NULL,
   guests INTEGER NOT NULL,

@@ -54,7 +54,7 @@ CREATE TABLE customers (
 CREATE TABLE bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
-  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  customer_id UUID REFERENCES users(id) ON DELETE CASCADE,
   check_in DATE NOT NULL,
   check_out DATE NOT NULL,
   guests INTEGER NOT NULL,
@@ -133,10 +133,10 @@ INSERT INTO customers (name, email, phone) VALUES
 -- Insert sample bookings
 INSERT INTO bookings (property_id, customer_id, check_in, check_out, guests, total_price, status) VALUES
 ((SELECT id FROM properties WHERE title = 'Luxury Nairobi Penthouse' LIMIT 1), 
- (SELECT id FROM customers WHERE email = 'john@example.com' LIMIT 1),
+ (SELECT id FROM users WHERE email = 'customer@test.com' LIMIT 1),
  '2026-03-20', '2026-03-25', 4, 1250.00, 'confirmed'),
 ((SELECT id FROM properties WHERE title = 'Karen Villa' LIMIT 1),
- (SELECT id FROM customers WHERE email = 'mary@example.com' LIMIT 1),
+ (SELECT id FROM users WHERE email = 'customer@test.com' LIMIT 1),
  '2026-04-10', '2026-04-17', 6, 2450.00, 'pending');
 
 -- Insert sample payments
@@ -181,9 +181,9 @@ SELECT 'USERS:' as table_name, email, name, role, created_at FROM users;
 SELECT 'PROPERTIES:' as table_name, title, location, price FROM properties;
 
 -- Show all bookings (you should see 2 bookings)
-SELECT 'BOOKINGS:' as table_name, b.id, p.title, c.name, b.status FROM bookings b
+SELECT 'BOOKINGS:' as table_name, b.id, p.title, u.name, b.status FROM bookings b
 JOIN properties p ON b.property_id = p.id
-JOIN customers c ON b.customer_id = c.id;
+JOIN users u ON b.customer_id = u.id;
 
 -- ============================================
 -- SUCCESS!
