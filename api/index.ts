@@ -137,16 +137,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         const hashedPassword = await hashPassword(password);
         const result = await query(
-          'INSERT INTO users (email, password_hash, name, role) VALUES ($1, $2, $3, $4) RETURNING id, email, name, role',
-          [email, hashedPassword, name, 'customer']
+          'INSERT INTO users (email, password_hash, name, phone, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, name, role',
+          [email, hashedPassword, name, phone, 'customer']
         );
         const user = result.rows[0];
-        
-        // Also create a customer record with the same ID for bookings
-        await query(
-          'INSERT INTO customers (id, email, name, phone) VALUES ($1, $2, $3, $4)',
-          [user.id, email, name, phone]
-        );
         
         const token = generateToken(user.id);
         return res.status(200).json({ user, token });
@@ -351,8 +345,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (req.method === 'PUT') {
           const { name, email, phone } = req.body;
           const result = await query(
-            'UPDATE customers SET name = $1, email = $2, phone = $3 WHERE id = $4 RETURNING *',
-            [name, email, phone, id]
+            'UPDATE users SET name = $1, email = $2, phone = $3 WHERE id = $4 AND role = $5 RETURNING id, name, email, phone, created_at',
+            [name, email, phone, id, 'customer']
           );
           if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Customer not found' });
@@ -360,21 +354,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(200).json(result.rows[0]);
         }
         if (req.method === 'DELETE') {
-          await query('DELETE FROM customers WHERE id = $1', [id]);
+          await query('DELETE FROM users WHERE id = $1 AND role = $2', [id, 'customer']);
           return res.status(200).json({ message: 'Customer deleted' });
         }
       }
 
       if (req.method === 'GET') {
-        const result = await query('SELECT * FROM customers ORDER BY created_at DESC');
+        const result = await query('SELECT id, name, email, phone, created_at FROM users WHERE role = $1 ORDER BY created_at DESC', ['customer']);
         return res.status(200).json(result.rows);
       }
 
       if (req.method === 'POST') {
-        const { name, email, phone } = req.body;
+        const { name, email, phone, password } = req.body;
+        const hashedPassword = password ? await hashPassword(password) : await hashPassword('temppassword123');
         const result = await query(
-          'INSERT INTO customers (name, email, phone) VALUES ($1, $2, $3) RETURNING *',
-          [name, email, phone]
+          'INSERT INTO users (name, email, phone, role, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, phone, created_at',
+          [name, email, phone, 'customer', hashedPassword]
         );
         return res.status(200).json(result.rows[0]);
       }
@@ -562,9 +557,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Get review by booking ID
       if (bookingId && typeof bookingId === 'string' && req.method === 'GET') {
         const result = await query(
-          `SELECT r.*, c.name as customer_name 
+          `SELECT r.*, u.name as customer_name 
            FROM reviews r 
-           JOIN customers c ON r.customer_id = c.id 
+           JOIN users u ON r.customer_id = u.id 
            WHERE r.booking_id = $1`,
           [bookingId]
         );
@@ -578,9 +573,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (id && typeof id === 'string') {
         if (req.method === 'GET') {
           const result = await query(
-            `SELECT r.*, c.name as customer_name 
+            `SELECT r.*, u.name as customer_name 
              FROM reviews r 
-             JOIN customers c ON r.customer_id = c.id 
+             JOIN users u ON r.customer_id = u.id 
              WHERE r.id = $1`,
             [id]
           );
@@ -610,9 +605,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // Collection operations
       if (req.method === 'GET') {
-        let queryStr = `SELECT r.*, c.name as customer_name 
+        let queryStr = `SELECT r.*, u.name as customer_name 
                         FROM reviews r 
-                        JOIN customers c ON r.customer_id = c.id`;
+                        JOIN users u ON r.customer_id = u.id`;
         const params: any[] = [];
         
         if (propertyId && typeof propertyId === 'string') {

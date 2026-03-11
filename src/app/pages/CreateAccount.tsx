@@ -99,7 +99,7 @@ export function CreateAccount() {
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="123-456-7890"
+                placeholder="+254 712 345 678"
                 required
               />
             </div>
