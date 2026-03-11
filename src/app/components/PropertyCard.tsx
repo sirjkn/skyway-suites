@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { MapPin, Users, Bed, Bath } from 'lucide-react';
-import { Property, getPropertyBookings, Booking } from '../lib/api';
+import { Property, getPropertyBookings, getPayments, Booking } from '../lib/api';
 import { Card, CardContent } from './ui/card';
 import { useEffect, useState } from 'react';
 
@@ -9,24 +9,37 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property }: PropertyCardProps) {
-  const [currentBooking, setCurrentBooking] = useState<Booking | null>(null);
+  const [bookedUntil, setBookedUntil] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if property has active bookings
+    // Check if property has active confirmed bookings with full payment
     async function checkBookingStatus() {
       try {
         const bookings = await getPropertyBookings(property.id);
+        const payments = await getPayments();
         const now = new Date();
         
-        // Find current or upcoming booking
-        const activeBooking = bookings.find(booking => {
+        // Find active confirmed bookings (checkout date hasn't passed yet)
+        const activeBookings = bookings.filter(booking => {
           const checkOut = new Date(booking.checkOut);
-          return checkOut > now && (booking.status === 'confirmed' || booking.status === 'pending');
+          return checkOut > now && booking.status === 'confirmed';
         });
         
-        if (activeBooking) {
-          setCurrentBooking(activeBooking);
+        // Check if any active booking is fully paid
+        for (const booking of activeBookings) {
+          const bookingPayments = payments.filter(p => p.bookingId === booking.id && p.status === 'paid');
+          const totalPaid = bookingPayments.reduce((sum, p) => sum + p.amount, 0);
+          
+          // If booking is confirmed and fully paid, property is booked
+          if (totalPaid >= booking.totalPrice) {
+            const checkOutDate = new Date(booking.checkOut).toLocaleDateString();
+            setBookedUntil(checkOutDate);
+            return;
+          }
         }
+        
+        // No fully paid confirmed bookings
+        setBookedUntil(null);
       } catch (error) {
         console.error('Failed to check booking status:', error);
       }
@@ -50,9 +63,9 @@ export function PropertyCard({ property }: PropertyCardProps) {
             style={{ backgroundImage: `url('${property.image}')` }}
           />
           {/* Booked Status Badge */}
-          {currentBooking && (
+          {bookedUntil && (
             <div className="absolute top-3 left-3 bg-red-600 text-white px-3 py-1.5 rounded-md font-semibold shadow-lg">
-              Booked
+              Booked until {bookedUntil}
             </div>
           )}
           {/* Price Badge - Positioned inside photo */}

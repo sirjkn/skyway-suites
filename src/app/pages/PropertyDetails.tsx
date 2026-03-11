@@ -8,6 +8,7 @@ import {
   checkPropertyAvailability,
   checkAirbnbAvailability,
   getPropertyBookings,
+  getPayments,
   Booking
 } from '../lib/api';
 import { Button } from '../components/ui/button';

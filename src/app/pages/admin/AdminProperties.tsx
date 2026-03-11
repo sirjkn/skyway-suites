@@ -51,16 +51,39 @@ export function AdminProperties() {
     // Find bookings for this property
     const propertyBookings = bookings.filter(b => b.propertyId === propertyId);
     
-    // Check if any booking is paid in full
-    const hasPaidBooking = propertyBookings.some(booking => {
-      const payment = payments.find(p => p.bookingId === booking.id);
-      return payment && payment.status === 'paid' && payment.amount >= booking.totalPrice;
+    const now = new Date();
+    
+    // Find active bookings (checkout date hasn't passed yet)
+    const activeBookings = propertyBookings.filter(booking => {
+      const checkOut = new Date(booking.checkOut);
+      return checkOut > now;
     });
     
-    if (hasPaidBooking) {
-      return { available: false, label: 'Booked' };
+    // Check if any active booking is confirmed AND paid in full
+    for (const booking of activeBookings) {
+      // Only consider "confirmed" bookings (not "pending")
+      if (booking.status !== 'confirmed') {
+        continue;
+      }
+      
+      // Calculate total payments for this booking
+      const bookingPayments = payments.filter(p => p.bookingId === booking.id && p.status === 'paid');
+      const totalPaid = bookingPayments.reduce((sum, p) => sum + p.amount, 0);
+      
+      // If booking is confirmed and fully paid, property is booked
+      if (totalPaid >= booking.totalPrice) {
+        const checkOutDate = new Date(booking.checkOut).toLocaleDateString();
+        return { 
+          available: false, 
+          label: `Booked, Available from ${checkOutDate}` 
+        };
+      }
     }
     
+    // Property is available if:
+    // - No active bookings
+    // - OR all active bookings are pending
+    // - OR active bookings are not fully paid
     return { available: true, label: 'Available' };
   };
 
