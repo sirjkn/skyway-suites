@@ -105,9 +105,12 @@ export function AdminPayments() {
     .filter(p => p.status === 'paid')
     .reduce((sum, p) => sum + p.amount, 0);
 
-  const pendingAmount = payments
-    .filter(p => p.status === 'pending')
+  // Calculate pending as: Total Booking Amount - Total Payments Made
+  const totalBookingAmount = bookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+  const totalPaymentsMade = payments
+    .filter(p => p.status === 'paid')
     .reduce((sum, p) => sum + p.amount, 0);
+  const pendingAmount = Math.max(0, totalBookingAmount - totalPaymentsMade);
 
   return (
     <div className="p-8">
@@ -143,7 +146,7 @@ export function AdminPayments() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-xs text-gray-600 mb-0.5">Total Revenue</div>
-                <div className="text-xl font-semibold text-green-600">${totalRevenue}</div>
+                <div className="text-xl font-semibold text-green-600">KES {totalRevenue.toLocaleString()}</div>
               </div>
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                 <DollarSign className="h-5 w-5 text-green-600" />
@@ -156,7 +159,7 @@ export function AdminPayments() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-xs text-gray-600 mb-0.5">Pending</div>
-                <div className="text-xl font-semibold text-yellow-600">${pendingAmount}</div>
+                <div className="text-xl font-semibold text-yellow-600">KES {pendingAmount.toLocaleString()}</div>
               </div>
               <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
                 <CreditCard className="h-5 w-5 text-yellow-600" />
@@ -206,7 +209,7 @@ export function AdminPayments() {
                     <td className="py-2 px-3 font-mono text-xs">#{payment.id?.slice(0, 8) || 'N/A'}</td>
                     <td className="py-2 px-3 font-mono text-xs">#{payment.bookingId?.slice(0, 8) || 'N/A'}</td>
                     <td className="py-2 px-3">{getCustomerName(payment.customerId)}</td>
-                    <td className="py-2 px-3 font-semibold text-green-600">${payment.amount}</td>
+                    <td className="py-2 px-3 font-semibold text-green-600">KES {payment.amount.toLocaleString()}</td>
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-1.5 text-gray-600">
                         <CreditCard className="h-3.5 w-3.5 text-gray-400" />
@@ -292,7 +295,7 @@ export function AdminPayments() {
                   <option value="">Select a booking</option>
                   {bookings.map(b => (
                     <option key={b.id} value={b.id}>
-                      Booking #{b.id?.slice(0, 8) || 'N/A'} - ${b.totalPrice}
+                      Booking #{b.id?.slice(0, 8) || 'N/A'} - KES {b.totalPrice.toLocaleString()}
                     </option>
                   ))}
                 </select>
@@ -321,7 +324,7 @@ export function AdminPayments() {
                 />
                 {selectedBooking && (
                   <p className="text-xs text-gray-500 mt-1">
-                    Total: ${selectedBooking.totalPrice} | Remaining: ${calculateRemainingBalance(selectedBooking)}
+                    Total: KES {selectedBooking.totalPrice.toLocaleString()} | Remaining: KES {calculateRemainingBalance(selectedBooking).toLocaleString()}
                   </p>
                 )}
               </div>
