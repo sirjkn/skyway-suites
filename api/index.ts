@@ -535,6 +535,42 @@ You can now use this SMTP configuration for automated notifications.
         const transformedPayment = transformPayment(result.rows[0]);
         console.log('✅ Transformed payment:', transformedPayment);
         
+        // 🎯 AUTO-UPDATE BOOKING STATUS WHEN FULLY PAID
+        // Get the booking details
+        const bookingResult = await query(
+          'SELECT id, total_price FROM bookings WHERE id = $1',
+          [bookingId]
+        );
+        
+        if (bookingResult.rows.length > 0) {
+          const booking = bookingResult.rows[0];
+          const bookingTotalPrice = parseFloat(booking.total_price);
+          
+          // Calculate total payments for this booking
+          const paymentsResult = await query(
+            'SELECT SUM(amount) as total_paid FROM payments WHERE booking_id = $1 AND status = $2',
+            [bookingId, 'paid']
+          );
+          
+          const totalPaid = parseFloat(paymentsResult.rows[0]?.total_paid || 0);
+          
+          console.log('💰 Payment Check:', {
+            bookingId,
+            totalPrice: bookingTotalPrice,
+            totalPaid,
+            fullyPaid: totalPaid >= bookingTotalPrice
+          });
+          
+          // If fully paid, update booking status to 'confirmed'
+          if (totalPaid >= bookingTotalPrice) {
+            await query(
+              'UPDATE bookings SET status = $1 WHERE id = $2',
+              ['confirmed', bookingId]
+            );
+            console.log('✅ Booking status updated to CONFIRMED');
+          }
+        }
+        
         return res.status(200).json(transformedPayment);
       }
     }

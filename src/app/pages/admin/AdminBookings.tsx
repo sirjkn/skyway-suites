@@ -344,7 +344,7 @@ export function AdminBookings() {
           <CardContent className="p-3">
             <div className="text-xs text-gray-600 mb-0.5">Pending Payment</div>
             <div className="text-xl font-semibold text-yellow-600">
-              {bookings.filter(b => getBookingStatus(b) === 'pending payment').length}
+              {bookings.filter(b => b.status === 'pending').length}
             </div>
           </CardContent>
         </Card>
@@ -352,7 +352,7 @@ export function AdminBookings() {
           <CardContent className="p-3">
             <div className="text-xs text-gray-600 mb-0.5">Confirmed</div>
             <div className="text-xl font-semibold text-green-600">
-              {bookings.filter(b => getBookingStatus(b) === 'confirmed').length}
+              {bookings.filter(b => b.status === 'confirmed').length}
             </div>
           </CardContent>
         </Card>
