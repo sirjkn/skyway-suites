@@ -517,17 +517,27 @@ You can now use this SMTP configuration for automated notifications.
         
         const booking = transformBooking(result.rows[0]);
         
+        console.log('✅ Booking created successfully:', booking.id);
+        
         // 📧 SEND EMAIL NOTIFICATION
+        let emailStatus = { sent: false, error: null };
         try {
+          console.log('📧 Starting email notification process...');
+          
           // Get customer details
+          console.log('🔍 Fetching customer details for ID:', customerId);
           const customerResult = await query('SELECT name, email, phone FROM users WHERE id = $1', [customerId]);
           const customer = customerResult.rows[0];
+          console.log('✅ Customer found:', { name: customer?.name, email: customer?.email, hasPhone: !!customer?.phone });
           
           // Get property details
+          console.log('🔍 Fetching property details for ID:', propertyId);
           const propertyResult = await query('SELECT title FROM properties WHERE id = $1', [propertyId]);
           const property = propertyResult.rows[0];
+          console.log('✅ Property found:', { title: property?.title });
           
           // Get notification settings
+          console.log('🔍 Fetching SMTP settings from database...');
           const settingsResult = await query('SELECT key, value FROM settings WHERE key IN ($1, $2, $3, $4, $5, $6, $7)', [
             'smtpHost', 'smtpPort', 'smtpUsername', 'smtpPassword', 'smtpSecure', 'emailFromAddress', 'emailFromName'
           ]);
@@ -537,12 +547,40 @@ You can now use this SMTP configuration for automated notifications.
             settings[row.key] = row.value;
           });
           
+          console.log('📋 SMTP Settings loaded:', {
+            smtpHost: settings.smtpHost,
+            smtpPort: settings.smtpPort,
+            smtpUsername: settings.smtpUsername,
+            smtpSecure: settings.smtpSecure,
+            hasPassword: !!settings.smtpPassword,
+            emailFromAddress: settings.emailFromAddress,
+            emailFromName: settings.emailFromName
+          });
+          
           // Only send if SMTP is configured
-          if (settings.smtpHost && settings.smtpUsername && customer?.email) {
+          if (!settings.smtpHost) {
+            console.log('⚠️ SMTP Host not configured - skipping email');
+            emailStatus.error = 'SMTP not configured';
+          } else if (!settings.smtpUsername) {
+            console.log('⚠️ SMTP Username not configured - skipping email');
+            emailStatus.error = 'SMTP username missing';
+          } else if (!customer?.email) {
+            console.log('⚠️ Customer email not found - skipping email');
+            emailStatus.error = 'Customer email missing';
+          } else {
+            console.log('✅ All email prerequisites met - proceeding to send emails');
+            
             const nodemailer = await import('nodemailer');
             
             const port = parseInt(settings.smtpPort || '587');
             const useSSL = settings.smtpSecure === 'true';
+            
+            console.log('📧 Creating email transporter with config:', {
+              host: settings.smtpHost,
+              port: port,
+              secure: useSSL,
+              user: settings.smtpUsername
+            });
             
             const transporter = nodemailer.default.createTransport({
               host: settings.smtpHost || 'mail.skywaysuites.co.ke',
@@ -560,7 +598,8 @@ You can now use this SMTP configuration for automated notifications.
             });
             
             // Send customer email
-            await transporter.sendMail({
+            console.log('📤 Sending customer email to:', customer.email);
+            const customerEmailInfo = await transporter.sendMail({
               from: `${settings.emailFromName || 'Skyway Suites'} <${settings.emailFromAddress || 'info@skywaysuites.co.ke'}>`,
               to: customer.email,
               subject: `🎉 New Booking Created - ${property?.title || 'Property'}`,
@@ -632,9 +671,11 @@ You can now use this SMTP configuration for automated notifications.
                 </html>
               `
             });
+            console.log('✅ Customer email sent successfully! Message ID:', customerEmailInfo.messageId);
             
             // Send admin notification
-            await transporter.sendMail({
+            console.log('📤 Sending admin notification to:', settings.emailFromAddress || 'info@skywaysuites.co.ke');
+            const adminEmailInfo = await transporter.sendMail({
               from: `${settings.emailFromName || 'Skyway Suites'} <${settings.emailFromAddress || 'info@skywaysuites.co.ke'}>`,
               to: settings.emailFromAddress || 'info@skywaysuites.co.ke',
               subject: `🔔 New Booking Alert - ${customer?.name || 'Customer'}`,
@@ -712,15 +753,27 @@ You can now use this SMTP configuration for automated notifications.
                 </html>
               `
             });
+            console.log('✅ Admin email sent successfully! Message ID:', adminEmailInfo.messageId);
             
-            console.log('✅ Booking notification emails sent!');
+            emailStatus.sent = true;
+            console.log('🎉 All booking notification emails sent successfully!');
           }
         } catch (emailError) {
-          console.error('❌ Failed to send booking notification email:', emailError);
+          console.error('❌ BOOKING EMAIL ERROR:', emailError);
+          console.error('Error details:', {
+            message: emailError instanceof Error ? emailError.message : 'Unknown error',
+            code: (emailError as any).code,
+            command: (emailError as any).command
+          });
           // Don't fail the booking if email fails
+          emailStatus.error = emailError instanceof Error ? emailError.message : 'Unknown error';
         }
         
-        return res.status(200).json(booking);
+        if (!emailStatus.sent && emailStatus.error) {
+          console.log('⚠️ Email not sent. Reason:', emailStatus.error);
+        }
+        
+        return res.status(200).json({ booking, emailStatus });
       }
     }
 
