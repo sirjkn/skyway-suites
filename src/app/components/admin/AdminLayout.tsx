@@ -58,6 +58,7 @@ export function AdminLayout() {
     { path: '/admin/payments', label: 'Payments', icon: CreditCard },
     { path: '/admin/settings', label: 'Settings', icon: Settings },
     { path: '/admin/email-diagnostics', label: 'Email Diagnostics', icon: Mail },
+    { path: '/admin/debug-settings', label: 'Debug Settings', icon: Settings },
   ];
 
   const handleLogout = () => {

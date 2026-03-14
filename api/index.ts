@@ -151,7 +151,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           
           const settings: any = {};
           settingsResult.rows.forEach((row: any) => {
-            settings[row.key] = row.value;
+            // Convert snake_case to camelCase for JavaScript
+            const camelKey = row.key.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase());
+            settings[camelKey] = row.value;
           });
           
           console.log('📧 SMTP Settings loaded:', {
@@ -264,8 +266,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         
         const settings: any = {};
         settingsResult.rows.forEach((row: any) => {
-          settings[row.key] = row.value;
+          // Convert snake_case to camelCase for JavaScript
+          const camelKey = row.key.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase());
+          settings[camelKey] = row.value;
         });
+        
+        console.log('📧 Diagnostics - Settings loaded from DB:', settings);
         
         // Count customers with emails
         const customersResult = await query('SELECT COUNT(*) as count FROM users WHERE role = $1 AND email IS NOT NULL', ['customer']);
@@ -299,6 +305,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.error('❌ Email diagnostics error:', error);
         return res.status(500).json({ 
           error: 'Diagnostics failed', 
+          details: error instanceof Error ? error.message : String(error) 
+        });
+      }
+    }
+
+    // ============================================
+    // DEBUG: RAW SETTINGS ENDPOINT
+    // ============================================
+    if (endpoint === 'debug-settings' && req.method === 'GET') {
+      try {
+        const allSettings = await query("SELECT * FROM settings WHERE category = 'notifications' ORDER BY key");
+        return res.status(200).json({
+          count: allSettings.rows.length,
+          settings: allSettings.rows
+        });
+      } catch (error) {
+        console.error('❌ Debug settings error:', error);
+        return res.status(500).json({ 
+          error: 'Failed to fetch settings', 
           details: error instanceof Error ? error.message : String(error) 
         });
       }
@@ -701,7 +726,9 @@ You can now use this SMTP configuration for automated notifications.
           
           const settings: any = {};
           settingsResult.rows.forEach((row: any) => {
-            settings[row.key] = row.value;
+            // Convert snake_case to camelCase for JavaScript
+            const camelKey = row.key.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase());
+            settings[camelKey] = row.value;
           });
           
           console.log('📋 SMTP Settings loaded:', {
@@ -1058,13 +1085,13 @@ You can now use this SMTP configuration for automated notifications.
               const property = propertyResult.rows[0];
               
               // Get SMTP settings
-              const settingsResult = await query('SELECT key, value FROM settings WHERE key IN ($1, $2, $3, $4, $5, $6, $7)', [
-                'smtpHost', 'smtpPort', 'smtpUsername', 'smtpPassword', 'smtpSecure', 'emailFromAddress', 'emailFromName'
-              ]);
+              const settingsResult = await query("SELECT key, value FROM settings WHERE category = 'notifications'");
               
               const settings: any = {};
               settingsResult.rows.forEach((row: any) => {
-                settings[row.key] = row.value;
+                // Convert snake_case to camelCase for JavaScript
+                const camelKey = row.key.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase());
+                settings[camelKey] = row.value;
               });
               
               if (settings.smtpHost && settings.smtpUsername && customer?.email) {
