@@ -847,7 +847,7 @@ You can now use this SMTP configuration for automated notifications.
             const customerEmailInfo = await transporter.sendMail({
               from: `${settings.emailFromName || 'Skyway Suites'} <${settings.emailFromAddress || 'info@skywaysuites.co.ke'}>`,
               to: customer.email,
-              subject: `🎉 New Booking Created - ${property?.title || 'Property'}`,
+              subject: `New Booking Created - ${property?.title || 'Property'}`,
               html: `
                 <!DOCTYPE html>
                 <html>
@@ -868,7 +868,7 @@ You can now use this SMTP configuration for automated notifications.
                 <body>
                   <div class="container">
                     <div class="header">
-                      <h1>🎉 Booking Created!</h1>
+                      <h1 style="margin: 0; font-size: 10px;">Booking Created</h1>
                       <p>Thank you for choosing Skyway Suites</p>
                     </div>
                     <div class="content">
@@ -900,7 +900,7 @@ You can now use this SMTP configuration for automated notifications.
                       </div>
                       
                       <div class="warning">
-                        <strong>⚠️ Payment Required</strong><br>
+                        <strong>Payment Required</strong><br>
                         Your booking is currently <strong>pending</strong>. Please complete your payment to confirm this booking.
                       </div>
                       
@@ -926,7 +926,7 @@ You can now use this SMTP configuration for automated notifications.
             const adminEmailInfo = await transporter.sendMail({
               from: `${settings.emailFromName || 'Skyway Suites'} <${settings.emailFromAddress || 'info@skywaysuites.co.ke'}>`,
               to: adminEmail,
-              subject: `🔔 New Booking Made - Approval Required`,
+              subject: `New Booking Made - Approval Required`,
               html: `
                 <!DOCTYPE html>
                 <html>
@@ -944,7 +944,7 @@ You can now use this SMTP configuration for automated notifications.
                 <body>
                   <div class="container">
                     <div class="header">
-                      <h1 style="margin: 0; font-size: 28px;">🔔 New Booking Alert!</h1>
+                      <h1 style="margin: 0; font-size: 10px;">New Booking Alert</h1>
                     </div>
                     <div class="content">
                       <div class="alert-box">
@@ -1153,7 +1153,7 @@ You can now use this SMTP configuration for automated notifications.
                 await transporter.sendMail({
                   from: `${settings.emailFromName || 'Skyway Suites'} <${settings.emailFromAddress || 'info@skywaysuites.co.ke'}>`,
                   to: customer.email,
-                  subject: `✅ Payment Confirmed - ${property?.title || 'Your Booking'}`,
+                  subject: `Payment Confirmed - ${property?.title || 'Your Booking'}`,
                   html: `
                     <!DOCTYPE html>
                     <html>
@@ -1174,14 +1174,14 @@ You can now use this SMTP configuration for automated notifications.
                     <body>
                       <div class="container">
                         <div class="header">
-                          <h1>✅ Payment Confirmed!</h1>
+                          <h1 style="margin: 0; font-size: 10px;">Payment Confirmed</h1>
                           <p>Your booking is now confirmed</p>
                         </div>
                         <div class="content">
                           <p>Dear ${customer?.name || 'Customer'},</p>
                           
                           <div class="success">
-                            <strong>✓ Payment Successful</strong><br>
+                            <strong>Payment Successful</strong><br>
                             We have received your full payment of <strong>KSh ${totalPaid.toLocaleString()}</strong>. Your booking is now <strong>confirmed</strong>!
                           </div>
                           
@@ -1213,7 +1213,7 @@ You can now use this SMTP configuration for automated notifications.
                             </div>
                             <div class="detail-row">
                               <span class="label">Status:</span>
-                              <span class="value" style="color: #28a745; font-weight: bold;">✓ CONFIRMED</span>
+                              <span class="value" style="color: #28a745; font-weight: bold;">CONFIRMED</span>
                             </div>
                           </div>
                           
@@ -1245,7 +1245,7 @@ You can now use this SMTP configuration for automated notifications.
                 await transporter.sendMail({
                   from: `${settings.emailFromName || 'Skyway Suites'} <${settings.emailFromAddress || 'info@skywaysuites.co.ke'}>`,
                   to: adminEmail,
-                  subject: `💰 Payment Received - ${customer?.name || 'Customer'}`,
+                  subject: `Payment Received - ${customer?.name || 'Customer'}`,
                   html: `
                     <!DOCTYPE html>
                     <html>
@@ -1264,7 +1264,7 @@ You can now use this SMTP configuration for automated notifications.
                     <body>
                       <div class="container">
                         <div class="header">
-                          <h1>💰 Payment Received</h1>
+                          <h1 style="margin: 0; font-size: 10px;">Payment Received</h1>
                         </div>
                         <div class="content">
                           <p><strong>Full payment received and booking confirmed!</strong></p>
@@ -1309,7 +1309,7 @@ You can now use this SMTP configuration for automated notifications.
                             </div>
                             <div class="detail-row">
                               <span class="label">Status:</span>
-                              <span class="value" style="color: #28a745; font-weight: bold;">✓ CONFIRMED</span>
+                              <span class="value" style="color: #28a745; font-weight: bold;">CONFIRMED</span>
                             </div>
                           </div>
                           
