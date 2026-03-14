@@ -284,6 +284,36 @@ export function AdminSettings() {
     }
   };
 
+  const handleInitializeRaptorSettings = async () => {
+    try {
+      // Set the correct Raptor settings
+      setSmtpHost('raptor.vivawebhost.com');
+      setSmtpPort('587');
+      setSmtpUsername('info@skywaysuites.co.ke');
+      setSmtpPassword('^we;RW{8OMGUOazE');
+      setSmtpSecure(false);
+      setEmailFromAddress('info@skywaysuites.co.ke');
+      setEmailFromName('Skyway Suites');
+      
+      // Save to database
+      await updateNotificationSettings({
+        emailProvider: 'smtp',
+        emailApiKey: '',
+        emailFromAddress: 'info@skywaysuites.co.ke',
+        emailFromName: 'Skyway Suites',
+        smtpHost: 'raptor.vivawebhost.com',
+        smtpPort: '587',
+        smtpUsername: 'info@skywaysuites.co.ke',
+        smtpPassword: '^we;RW{8OMGUOazE',
+        smtpSecure: false,
+      });
+      
+      toast.success('Raptor mail server settings initialized and saved!');
+    } catch (error) {
+      toast.error('Failed to initialize settings');
+    }
+  };
+
   const handleSendTestEmail = async () => {
     if (!testEmail) {
       toast.error('Please enter a test email address');
@@ -896,6 +926,11 @@ export function AdminSettings() {
                 <Button onClick={handleSaveEmailSettings}>
                   <Mail className="h-4 w-4 mr-2" />
                   Save Email Settings
+                </Button>
+
+                <Button onClick={handleInitializeRaptorSettings}>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Initialize Raptor Mail Server
                 </Button>
               </CardContent>
             </Card>
