@@ -7,7 +7,7 @@ import { PropertyCard } from '../components/PropertyCard';
 
 export function Home() {
   const [properties, setProperties] = useState<Property[]>([]);
-  const [heroBackground, setHeroBackground] = useState('https://images.unsplash.com/photo-1741991109886-90e70988f27b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxOYWlyb2JpJTIwS2VueWElMjBjaXR5c2NhcGUlMjBza3lsaW5lfGVufDF8fHx8MTc3MzAzNTM5OXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral');
+  const [heroBackground, setHeroBackground] = useState('https://res.cloudinary.com/dc5d5zfos/image/upload/v1773130653/skyway-suites/teaska4iahwhiwottlpg.webp');
 
   useEffect(() => {
     getProperties().then((data) => setProperties(data.slice(0, 6)));
@@ -126,7 +126,7 @@ export function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-[#6B7C3C] text-white">
+      <section className="py-16 bg-[#C9B99B] text-[#3a3a3a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl mb-4">Ready to Start Your Journey?</h2>
           <p className="text-xl mb-8">Join thousands of happy travelers</p>

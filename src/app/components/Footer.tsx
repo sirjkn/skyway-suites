@@ -1,7 +1,23 @@
 import { Building2 } from 'lucide-react';
 import { Link } from 'react-router';
+import { useEffect, useState } from 'react';
+import { getSettings } from '../lib/api';
 
 export function Footer() {
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const data = await getSettings();
+        setSettings(data);
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      }
+    };
+    loadSettings();
+  }, []);
+
   return (
     <footer className="bg-[#3a3a3a] text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -49,10 +65,10 @@ export function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">Contact</h3>
             <ul className="space-y-2 text-sm">
-              <li>Email: info@skywaysuites.com</li>
-              <li>Phone: +1 (555) 123-4567</li>
-              <li>Address: 123 Main St, Suite 100</li>
-              <li>New York, NY 10001</li>
+              <li>Email: {settings?.companyEmail || 'info@skywaysuites.com'}</li>
+              <li>Phone: {settings?.companyPhone || '+1 (555) 123-4567'}</li>
+              <li>Address: {settings?.companyAddress || '123 Main St, Suite 100'}</li>
+              <li>{settings?.companyCity || 'New York'}, {settings?.companyCountry || 'NY 10001'}</li>
             </ul>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Database, AlertCircle, CheckCircle2, Loader2, Wrench } from 'lucide-react';
 import { Badge } from './ui/badge';
+import { useAuth } from '../context/AuthContext';
 
 // Detect if we're in preview mode
 function isPreviewMode(): boolean {
@@ -15,6 +16,12 @@ export function RealtimeIndicator() {
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [errorMessage, setErrorMessage] = useState<string>('');
   const inPreview = isPreviewMode();
+  const { user } = useAuth();
+
+  // Only show indicator if admin is logged in
+  if (!user?.role || user.role !== 'admin') {
+    return null;
+  }
 
   // Check API connectivity
   useEffect(() => {
