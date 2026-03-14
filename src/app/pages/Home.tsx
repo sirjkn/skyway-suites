@@ -85,7 +85,7 @@ export function Home() {
             <h2 className="text-3xl mb-4">Why Choose Skyway Suites?</h2>
             <p className="text-gray-600">Experience the best in vacation rentals</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="text-center p-6 bg-[#6B7C3C] rounded-2xl hover:bg-[#C9B99B] transition-colors duration-300 flex flex-col items-center justify-start h-full">
               <div className="w-12 h-12 bg-[#3a3a3a] rounded-full flex items-center justify-center mx-auto mb-3">
                 <MapPin className="h-6 w-6 text-white" />
