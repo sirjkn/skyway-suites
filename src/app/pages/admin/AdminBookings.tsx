@@ -313,26 +313,26 @@ export function AdminBookings() {
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl mb-2">Bookings</h1>
-        <p className="text-gray-600">Manage property bookings</p>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl mb-2">Bookings</h1>
+        <p className="text-gray-600 text-sm sm:text-base">Manage property bookings</p>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-4 mb-8">
-        <Button onClick={() => setShowAddDialog(true)}>
+      <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 sm:mb-8">
+        <Button onClick={() => setShowAddDialog(true)} className="flex-1 sm:flex-none">
           <Plus className="h-4 w-4 mr-2" />
           Book Property
         </Button>
-        <Link to="/admin/customers">
-          <Button variant="outline">
+        <Link to="/admin/customers" className="flex-1 sm:flex-none">
+          <Button variant="outline" className="w-full">
             <Users className="h-4 w-4 mr-2" />
             Customers
           </Button>
         </Link>
-        <Link to="/admin/properties">
-          <Button variant="outline">
+        <Link to="/admin/properties" className="flex-1 sm:flex-none">
+          <Button variant="outline" className="w-full">
             <Home className="h-4 w-4 mr-2" />
             Properties
           </Button>
@@ -340,7 +340,7 @@ export function AdminBookings() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="p-3">
             <div className="text-xs text-gray-600 mb-0.5">Total Bookings</div>

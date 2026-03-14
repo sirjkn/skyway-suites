@@ -365,26 +365,26 @@ export function AdminProperties() {
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl mb-2">Properties</h1>
-        <p className="text-gray-600">Manage your property listings</p>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl mb-2">Properties</h1>
+        <p className="text-gray-600 text-sm sm:text-base">Manage your property listings</p>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-4 mb-8">
-        <Button onClick={() => setShowAddDialog(true)}>
+      <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 sm:mb-8">
+        <Button onClick={() => setShowAddDialog(true)} className="flex-1 sm:flex-none">
           <Plus className="h-4 w-4 mr-2" />
           Add Property
         </Button>
-        <Link to="/admin/bookings">
-          <Button variant="outline">
+        <Link to="/admin/bookings" className="flex-1 sm:flex-none">
+          <Button variant="outline" className="w-full">
             <Calendar className="h-4 w-4 mr-2" />
             Bookings
           </Button>
         </Link>
-        <Link to="/admin/customers">
-          <Button variant="outline">
+        <Link to="/admin/customers" className="flex-1 sm:flex-none">
+          <Button variant="outline" className="w-full">
             <Users className="h-4 w-4 mr-2" />
             Customers
           </Button>
@@ -394,10 +394,11 @@ export function AdminProperties() {
       {/* Properties Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Properties ({properties.length})</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">All Properties ({properties.length})</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          {/* Desktop Table */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr className="border-b text-sm">
@@ -466,6 +467,62 @@ export function AdminProperties() {
                 })}
               </tbody>
             </table>
+          </div>
+          {/* Mobile Table */}
+          <div className="lg:hidden">
+            {properties.map((property) => {
+              const availability = getPropertyAvailability(property.id);
+              return (
+                <div key={property.id} className="border-b hover:bg-gray-50 text-sm p-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-10 h-10 rounded bg-cover bg-center flex-shrink-0"
+                      style={{ backgroundImage: `url('${property.image}')` }}
+                    />
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{property.title}</div>
+                      <div className="text-xs text-gray-500 truncate">{property.description.slice(0, 40)}...</div>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <div className="text-gray-600">Location: {property.location}</div>
+                    <div className="text-gray-600">Price: KES {property.price.toLocaleString()}</div>
+                    <div className="text-gray-600">Beds: {property.bedrooms}</div>
+                    <div className="text-gray-600">Guests: {property.guests}</div>
+                    <div className="text-gray-600">
+                      Status: <span className={`px-2 py-0.5 rounded text-xs ${
+                        availability.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {availability.label}
+                      </span>
+                    </div>
+                    <div className="mt-2">
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(property.id)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleDelete(property.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleShowCalendar(property.id)}
+                        >
+                          <Calendar className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
