@@ -33,7 +33,7 @@ export function Home() {
               Find Your Perfect Stay !
             </h1>
             <p className="text-sm md:text-base">
-              Discover unforgettable experiences around in Nairobi and its Environs
+              Discover unforgettable experiences around Nairobi and its Environs
             </p>
           </div>
         </div>
