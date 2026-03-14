@@ -65,9 +65,9 @@ export function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">Contact</h3>
             <ul className="space-y-2 text-sm">
-              <li>Email: {companyInfo?.email || 'info@skywaysuites.com'}</li>
-              <li>Phone: {companyInfo?.phone || '+1 (555) 123-4567'}</li>
-              <li>{companyInfo?.address || '123 Main St, Suite 100, New York, NY 10001'}</li>
+              {companyInfo?.email && <li>Email: {companyInfo.email}</li>}
+              {companyInfo?.phone && <li>Phone: {companyInfo.phone}</li>}
+              {companyInfo?.address && <li>{companyInfo.address}</li>}
             </ul>
           </div>
         </div>

@@ -131,7 +131,7 @@ export function Home() {
           <h2 className="text-3xl mb-4">Ready to Start Your Journey?</h2>
           <p className="text-xl mb-8">Join thousands of happy travelers</p>
           <Link to="/create-account">
-            <Button size="lg" variant="secondary">
+            <Button size="lg" variant="secondary" className="border-2 border-white">
               Create Your Account
             </Button>
           </Link>

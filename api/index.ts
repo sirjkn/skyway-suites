@@ -266,7 +266,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 <body>
                   <div class="container">
                     <div class="header">
-                      <h1>🎉 Welcome to Skyway Suites!</h1>
+                      <h1 style="font-size: 48px; margin: 0;">🎉 Welcome to Skyway Suites!</h1>
                       <p>Your account has been created successfully</p>
                     </div>
                     <div class="content">
@@ -868,7 +868,7 @@ You can now use this SMTP configuration for automated notifications.
                 <body>
                   <div class="container">
                     <div class="header">
-                      <h1 style="margin: 0; font-size: 10px;">Booking Created</h1>
+                      <h1 style="margin: 0; font-size: 20px;">Booking Created</h1>
                       <p>Thank you for choosing Skyway Suites</p>
                     </div>
                     <div class="content">
@@ -944,7 +944,7 @@ You can now use this SMTP configuration for automated notifications.
                 <body>
                   <div class="container">
                     <div class="header">
-                      <h1 style="margin: 0; font-size: 10px;">New Booking Alert</h1>
+                      <h1 style="margin: 0; font-size: 20px;">New Booking Alert</h1>
                     </div>
                     <div class="content">
                       <div class="alert-box">
@@ -1174,7 +1174,7 @@ You can now use this SMTP configuration for automated notifications.
                     <body>
                       <div class="container">
                         <div class="header">
-                          <h1 style="margin: 0; font-size: 10px;">Payment Confirmed</h1>
+                          <h1 style="margin: 0; font-size: 20px;">Payment Confirmed</h1>
                           <p>Your booking is now confirmed</p>
                         </div>
                         <div class="content">
@@ -1264,7 +1264,7 @@ You can now use this SMTP configuration for automated notifications.
                     <body>
                       <div class="container">
                         <div class="header">
-                          <h1 style="margin: 0; font-size: 10px;">Payment Received</h1>
+                          <h1 style="margin: 0; font-size: 20px;">Payment Received</h1>
                         </div>
                         <div class="content">
                           <p><strong>Full payment received and booking confirmed!</strong></p>
