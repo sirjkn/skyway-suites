@@ -605,6 +605,7 @@ export interface NotificationSettings {
   emailApiKey?: string;
   emailFromAddress?: string;
   emailFromName?: string;
+  adminNotificationEmail?: string;
   
   // SMTP Configuration
   smtpHost?: string;
@@ -710,6 +711,9 @@ export async function updateNotificationSettings(settings: NotificationSettings)
   }
   if (settings.emailFromName !== undefined) {
     settingsArray.push({ category: 'notifications', key: 'email_from_name', value: settings.emailFromName });
+  }
+  if (settings.adminNotificationEmail !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'admin_notification_email', value: settings.adminNotificationEmail });
   }
   
   // SMTP Configuration settings

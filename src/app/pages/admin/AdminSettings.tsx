@@ -44,6 +44,7 @@ export function AdminSettings() {
   const [emailApiKey, setEmailApiKey] = useState('');
   const [emailFromAddress, setEmailFromAddress] = useState('info@skywaysuites.co.ke');
   const [emailFromName, setEmailFromName] = useState('Skyway Suites');
+  const [adminNotificationEmail, setAdminNotificationEmail] = useState('info@skywaysuites.co.ke');
   
   // SMTP Configuration State
   const [smtpHost, setSmtpHost] = useState('raptor.vivawebhost.com');
@@ -233,6 +234,7 @@ export function AdminSettings() {
         if (settings.emailApiKey) setEmailApiKey(settings.emailApiKey);
         if (settings.emailFromAddress) setEmailFromAddress(settings.emailFromAddress);
         if (settings.emailFromName) setEmailFromName(settings.emailFromName);
+        if (settings.adminNotificationEmail) setAdminNotificationEmail(settings.adminNotificationEmail);
         
         // Load SMTP configuration settings
         if (settings.smtpHost) setSmtpHost(settings.smtpHost);
@@ -277,6 +279,7 @@ export function AdminSettings() {
         smtpUsername,
         smtpPassword,
         smtpSecure,
+        adminNotificationEmail,
       });
       toast.success('Email settings saved successfully');
     } catch (error) {
@@ -306,6 +309,7 @@ export function AdminSettings() {
         smtpUsername: 'info@skywaysuites.co.ke',
         smtpPassword: '^we;RW{8OMGUOazE',
         smtpSecure: false,
+        adminNotificationEmail: 'info@skywaysuites.co.ke',
       });
       
       toast.success('Raptor mail server settings initialized and saved!');
@@ -807,6 +811,19 @@ export function AdminSettings() {
                         onChange={(e) => setEmailFromAddress(e.target.value)}
                         placeholder="info@skywaysuites.co.ke"
                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Admin Notification Email</label>
+                      <Input 
+                        type="email"
+                        value={adminNotificationEmail}
+                        onChange={(e) => setAdminNotificationEmail(e.target.value)}
+                        placeholder="admin@skywaysuites.co.ke"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        This email will receive notifications for new bookings and payments
+                      </p>
                     </div>
 
                     <div>

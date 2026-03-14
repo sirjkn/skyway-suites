@@ -883,10 +883,11 @@ You can now use this SMTP configuration for automated notifications.
             console.log('✅ Customer email sent successfully! Message ID:', customerEmailInfo.messageId);
             
             // Send admin notification
-            console.log('📤 Sending admin notification to:', settings.emailFromAddress || 'info@skywaysuites.co.ke');
+            const adminEmail = settings.adminNotificationEmail || settings.emailFromAddress || 'info@skywaysuites.co.ke';
+            console.log('📤 Sending admin notification to:', adminEmail);
             const adminEmailInfo = await transporter.sendMail({
               from: `${settings.emailFromName || 'Skyway Suites'} <${settings.emailFromAddress || 'info@skywaysuites.co.ke'}>`,
-              to: settings.emailFromAddress || 'info@skywaysuites.co.ke',
+              to: adminEmail,
               subject: `🔔 New Booking Alert - ${customer?.name || 'Customer'}`,
               html: `
                 <!DOCTYPE html>
@@ -1231,9 +1232,11 @@ You can now use this SMTP configuration for automated notifications.
                 console.log('✅ Payment confirmation email sent to customer:', customer.email);
                 
                 // Send admin notification
+                const adminEmail = settings.adminNotificationEmail || settings.emailFromAddress || 'info@skywaysuites.co.ke';
+                console.log('📤 Sending payment notification to admin:', adminEmail);
                 await transporter.sendMail({
                   from: `${settings.emailFromName || 'Skyway Suites'} <${settings.emailFromAddress || 'info@skywaysuites.co.ke'}>`,
-                  to: settings.emailFromAddress || 'info@skywaysuites.co.ke',
+                  to: adminEmail,
                   subject: `💰 Payment Received - ${customer?.name || 'Customer'}`,
                   html: `
                     <!DOCTYPE html>
