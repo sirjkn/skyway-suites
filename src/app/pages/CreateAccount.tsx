@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { Building2, Info } from 'lucide-react';
+import { Building2, Info, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -13,6 +13,7 @@ export function CreateAccount() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
   const { signup, isPreviewMode } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -25,6 +26,7 @@ export function CreateAccount() {
       return;
     }
 
+    setIsCreating(true);
     try {
       await signup(email, password, name, phone);
       toast.success('Account created successfully!');
@@ -43,6 +45,8 @@ export function CreateAccount() {
         : 'Failed to create account. Please try again.';
       toast.error(errorMessage);
       console.error('Signup error:', error);
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -125,8 +129,15 @@ export function CreateAccount() {
                 minLength={6}
               />
             </div>
-            <Button type="submit" className="w-full">
-              Create Account
+            <Button type="submit" className="w-full" disabled={isCreating}>
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Creating...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </Button>
           </form>
 

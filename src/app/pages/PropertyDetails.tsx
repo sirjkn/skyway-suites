@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router';
-import { MapPin, Users, Bed, Bath, Wifi, Check, Tag, AlertCircle } from 'lucide-react';
+import { MapPin, Users, Bed, Bath, Wifi, Check, Tag, AlertCircle, Loader2 } from 'lucide-react';
 import { 
   getProperty, 
   Property, 
@@ -31,6 +31,7 @@ export function PropertyDetails() {
   const [checkingAirbnb, setCheckingAirbnb] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isBooking, setIsBooking] = useState(false);
   
   // Get booking state from URL params (if returning from login)
   const [checkIn, setCheckIn] = useState(searchParams.get('checkIn') || '');
@@ -197,6 +198,7 @@ export function PropertyDetails() {
     
     // Connect to your Neon database to create booking
     try {
+      setIsBooking(true);
       const response = await createBooking({
         propertyId: id,
         customerId: user.id,
@@ -211,6 +213,8 @@ export function PropertyDetails() {
     } catch (err) {
       console.error('Failed to create booking:', err);
       toast.error('Failed to create booking');
+    } finally {
+      setIsBooking(false);
     }
   };
 
@@ -497,8 +501,15 @@ export function PropertyDetails() {
                   })()}
 
                   {user ? (
-                    <Button className="w-full" onClick={handleBooking}>
-                      Request to Book
+                    <Button className="w-full" onClick={handleBooking} disabled={isBooking}>
+                      {isBooking ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Booking...
+                        </>
+                      ) : (
+                        'Request to Book'
+                      )}
                     </Button>
                   ) : (
                     <Button 

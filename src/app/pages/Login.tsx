@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { Building2, Info } from 'lucide-react';
+import { Building2, Info, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -10,12 +10,14 @@ import { toast } from 'sonner';
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login, isPreviewMode } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoggingIn(true);
     try {
       await login(email, password);
       toast.success('Login successful!');
@@ -34,6 +36,8 @@ export function Login() {
         : 'Login failed. Please check your credentials.';
       toast.error(errorMessage);
       console.error('Login error:', error);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -84,8 +88,15 @@ export function Login() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isLoggingIn}>
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Logging in...
+                </>
+              ) : (
+                'Login'
+              )}
             </Button>
           </form>
 
