@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { MapPin, Star, Users } from 'lucide-react';
-import { getBookingsByProperty, getPayments } from '../lib/api';
+import { getPropertyBookings, getPayments, Property } from '../lib/api';
 import { formatDateOnly } from '../lib/dateUtils';
 import { Card, CardContent } from './ui/card';
 
@@ -16,7 +16,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
     // Check if property has active confirmed bookings with full payment
     async function checkBookingStatus() {
       try {
-        const bookings = await getBookingsByProperty(property.id);
+        const bookings = await getPropertyBookings(property.id);
         const payments = await getPayments();
         const now = new Date();
         

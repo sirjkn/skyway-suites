@@ -321,6 +321,20 @@ export async function getPropertyBookings(propertyId: string): Promise<Booking[]
   }
 }
 
+// Get bookings for a specific customer
+export async function getCustomerBookings(customerId: string): Promise<Booking[]> {
+  try {
+    const allBookings = await getBookings();
+    return allBookings.filter(booking => booking.customerId === customerId);
+  } catch (error) {
+    console.error('Failed to fetch customer bookings:', error);
+    return [];
+  }
+}
+
+// Alias for backward compatibility
+export const getBookingsByCustomer = getCustomerBookings;
+
 // Check if dates overlap
 export function doDatesOverlap(
   start1: string, 

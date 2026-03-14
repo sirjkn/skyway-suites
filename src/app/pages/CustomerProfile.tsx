@@ -44,7 +44,7 @@ export function CustomerProfile() {
       const [bookingsData, propertiesData, paymentsData] = await Promise.all([
         getBookingsByCustomer(user.id).catch(() => []),
         getProperties().catch(() => []),
-        getPayments(user.id).catch(() => [])
+        getPayments().catch(() => [])
       ]);
       
       // Filter bookings for this customer
