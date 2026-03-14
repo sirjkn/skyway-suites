@@ -15,11 +15,22 @@ export default function EmailDiagnostics() {
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}?endpoint=email-diagnostics`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Diagnostics error:', errorData);
+        toast.error(`Failed to load diagnostics: ${errorData.details || errorData.error}`);
+        setDiagnostics(null);
+        return;
+      }
+      
       const data = await response.json();
+      console.log('Diagnostics data:', data);
       setDiagnostics(data);
     } catch (error) {
-      toast.error('Failed to load diagnostics');
-      console.error(error);
+      console.error('Diagnostics fetch error:', error);
+      toast.error('Failed to load diagnostics - check console for details');
+      setDiagnostics(null);
     } finally {
       setLoading(false);
     }

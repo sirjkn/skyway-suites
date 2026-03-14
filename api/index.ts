@@ -251,9 +251,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (endpoint === 'email-diagnostics' && req.method === 'GET') {
       try {
         // Check SMTP settings
-        const settingsResult = await query('SELECT key, value FROM settings WHERE key IN ($1, $2, $3, $4, $5, $6, $7)', [
-          'smtpHost', 'smtpPort', 'smtpUsername', 'smtpPassword', 'smtpSecure', 'emailFromAddress', 'emailFromName'
-        ]);
+        const settingsResult = await query("SELECT key, value FROM settings WHERE category = 'notifications'");
         
         const settings: any = {};
         settingsResult.rows.forEach((row: any) => {
@@ -289,6 +287,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         });
       } catch (error) {
+        console.error('❌ Email diagnostics error:', error);
         return res.status(500).json({ 
           error: 'Diagnostics failed', 
           details: error instanceof Error ? error.message : String(error) 
