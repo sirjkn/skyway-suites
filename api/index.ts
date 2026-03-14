@@ -774,14 +774,14 @@ You can now use this SMTP configuration for automated notifications.
           
           // Get property details
           console.log('🔍 Fetching property details for ID:', propertyId);
-          const propertyResult = await query('SELECT title FROM properties WHERE id = $1', [propertyId]);
+          const propertyResult = await query('SELECT title, location FROM properties WHERE id = $1', [propertyId]);
           const property = propertyResult.rows[0];
-          console.log('✅ Property found:', { title: property?.title });
+          console.log('✅ Property found:', { title: property?.title, location: property?.location });
           
           // Get notification settings
           console.log('🔍 Fetching SMTP settings from database...');
-          const settingsResult = await query('SELECT key, value FROM settings WHERE key IN ($1, $2, $3, $4, $5, $6, $7)', [
-            'smtpHost', 'smtpPort', 'smtpUsername', 'smtpPassword', 'smtpSecure', 'emailFromAddress', 'emailFromName'
+          const settingsResult = await query('SELECT key, value FROM settings WHERE key IN ($1, $2, $3, $4, $5, $6, $7, $8)', [
+            'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_secure', 'email_from_address', 'email_from_name', 'admin_notification_email'
           ]);
           
           const settings: any = {};
@@ -798,7 +798,8 @@ You can now use this SMTP configuration for automated notifications.
             smtpSecure: settings.smtpSecure,
             hasPassword: !!settings.smtpPassword,
             emailFromAddress: settings.emailFromAddress,
-            emailFromName: settings.emailFromName
+            emailFromName: settings.emailFromName,
+            adminNotificationEmail: settings.adminNotificationEmail
           });
           
           // Only send if SMTP is configured
@@ -918,6 +919,7 @@ You can now use this SMTP configuration for automated notifications.
             console.log('✅ Customer email sent successfully! Message ID:', customerEmailInfo.messageId);
             
             // Send admin notification
+            const bookingId = booking.id;
             const adminEmail = settings.adminNotificationEmail || settings.emailFromAddress || 'info@skywaysuites.co.ke';
             console.log('📤 Sending admin notification to:', adminEmail);
             const adminEmailInfo = await transporter.sendMail({

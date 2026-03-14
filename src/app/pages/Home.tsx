@@ -27,12 +27,12 @@ export function Home() {
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('${heroBackground}')`,
         }}
       >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white max-w-3xl px-4">
-            <h1 className="text-5xl md:text-6xl mb-6">
+        <div className="absolute inset-0 flex items-end justify-center pb-12">
+          <div className="text-center text-white max-w-2xl px-4">
+            <h1 className="text-2xl md:text-3xl mb-3">
               Find Your Perfect Stay !
             </h1>
-            <p className="text-xl mb-8">
+            <p className="text-sm md:text-base">
               Discover unforgettable experiences around in Nairobi and its Environs
             </p>
           </div>
