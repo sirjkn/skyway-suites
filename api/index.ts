@@ -923,7 +923,7 @@ You can now use this SMTP configuration for automated notifications.
             const adminEmailInfo = await transporter.sendMail({
               from: `${settings.emailFromName || 'Skyway Suites'} <${settings.emailFromAddress || 'info@skywaysuites.co.ke'}>`,
               to: adminEmail,
-              subject: `🔔 New Booking Alert - ${customer?.name || 'Customer'}`,
+              subject: `🔔 New Booking Alert - Action Required`,
               html: `
                 <!DOCTYPE html>
                 <html>
@@ -937,15 +937,33 @@ You can now use this SMTP configuration for automated notifications.
                     .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
                     .label { font-weight: bold; color: #6B7C3C; }
                     .value { color: #3a3a3a; }
+                    .action-required { background: #fff3cd; border: 2px solid #ffc107; color: #856404; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
+                    .action-button { display: inline-block; background: #6B7C3C; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 10px 0; font-weight: bold; }
+                    .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
                   </style>
                 </head>
                 <body>
                   <div class="container">
                     <div class="header">
                       <h1>🔔 New Booking Alert</h1>
+                      <p style="font-size: 14px; margin: 0;">Action Required</p>
                     </div>
                     <div class="content">
-                      <p><strong>A new booking has been created!</strong></p>
+                      <p><strong>A new booking has been created and requires your attention!</strong></p>
+                      
+                      <div class="action-required">
+                        <h3 style="margin-top: 0; color: #856404;">⚠️ ACTION REQUIRED</h3>
+                        <p style="margin: 10px 0;"><strong>Please log in to your admin dashboard to:</strong></p>
+                        <ol style="text-align: left; display: inline-block; margin: 10px 0;">
+                          <li>Review the booking details</li>
+                          <li>Verify payment received</li>
+                          <li>Approve or confirm the booking</li>
+                        </ol>
+                        <br>
+                        <a href="${req.headers.origin || 'https://skyway-suites.vercel.app'}/admin/bookings" class="action-button">
+                          Go to Admin Dashboard
+                        </a>
+                      </div>
                       
                       <div class="booking-details">
                         <h3 style="margin-top: 0; color: #6B7C3C;">Customer Information</h3>
@@ -966,8 +984,16 @@ You can now use this SMTP configuration for automated notifications.
                       <div class="booking-details">
                         <h3 style="margin-top: 0; color: #6B7C3C;">Booking Details</h3>
                         <div class="detail-row">
+                          <span class="label">Booking ID:</span>
+                          <span class="value">${bookingId}</span>
+                        </div>
+                        <div class="detail-row">
                           <span class="label">Property:</span>
                           <span class="value">${property?.title || 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                          <span class="label">Location:</span>
+                          <span class="value">${property?.location || 'N/A'}</span>
                         </div>
                         <div class="detail-row">
                           <span class="label">Check-in:</span>
@@ -983,15 +1009,35 @@ You can now use this SMTP configuration for automated notifications.
                         </div>
                         <div class="detail-row">
                           <span class="label">Total Price:</span>
-                          <span class="value">KSh ${totalPrice.toLocaleString()}</span>
+                          <span class="value"><strong>KSh ${totalPrice.toLocaleString()}</strong></span>
                         </div>
                         <div class="detail-row">
                           <span class="label">Status:</span>
-                          <span class="value" style="color: #ffc107;">⏳ Pending Payment</span>
+                          <span class="value" style="color: #ffc107; font-weight: bold;">⏳ Pending - Awaiting Admin Approval</span>
                         </div>
                       </div>
                       
-                      <p>Please follow up with the customer to ensure payment is completed.</p>
+                      <div class="booking-details" style="background: #fff3cd; border-left-color: #ffc107;">
+                        <h3 style="margin-top: 0; color: #856404;">📋 Next Steps for Admin:</h3>
+                        <ol style="margin: 10px 0 0 0; padding-left: 20px;">
+                          <li><strong>Contact the customer</strong> to confirm payment details</li>
+                          <li><strong>Verify payment</strong> has been received (M-Pesa, Bank Transfer, etc.)</li>
+                          <li><strong>Go to Admin Dashboard → Bookings</strong></li>
+                          <li><strong>Update booking status</strong> to "Confirmed"</li>
+                          <li><strong>Add payment record</strong> in the Payments section</li>
+                        </ol>
+                      </div>
+                      
+                      <p style="text-align: center; margin-top: 20px;">
+                        <a href="${req.headers.origin || 'https://skyway-suites.vercel.app'}/admin/bookings" style="color: #6B7C3C; font-weight: bold; font-size: 16px;">
+                          👉 View All Bookings in Dashboard
+                        </a>
+                      </p>
+                      
+                      <div class="footer">
+                        <p>This is an automated admin notification from Skyway Suites</p>
+                        <p>&copy; ${new Date().getFullYear()} Skyway Suites. All rights reserved.</p>
+                      </div>
                     </div>
                   </div>
                 </body>
