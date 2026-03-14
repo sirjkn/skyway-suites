@@ -182,7 +182,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         
         // Create transporter with enhanced settings and timeout
         const transporter = nodemailer.default.createTransport({
-          host: smtpHost || 'mail.skywaysuites.co.ke',
+          host: smtpHost || 'raptor.vivawebhost.com',
           port: port,
           secure: useSSL, // true for 465 (SSL/TLS), false for 587 (STARTTLS)
           auth: {
@@ -583,7 +583,7 @@ You can now use this SMTP configuration for automated notifications.
             });
             
             const transporter = nodemailer.default.createTransport({
-              host: settings.smtpHost || 'mail.skywaysuites.co.ke',
+              host: settings.smtpHost || 'raptor.vivawebhost.com',
               port: port,
               secure: useSSL,
               auth: {

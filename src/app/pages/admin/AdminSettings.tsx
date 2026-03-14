@@ -46,7 +46,7 @@ export function AdminSettings() {
   const [emailFromName, setEmailFromName] = useState('Skyway Suites');
   
   // SMTP Configuration State
-  const [smtpHost, setSmtpHost] = useState('mail.skywaysuites.co.ke');
+  const [smtpHost, setSmtpHost] = useState('raptor.vivawebhost.com');
   const [smtpPort, setSmtpPort] = useState('587');
   const [smtpUsername, setSmtpUsername] = useState('info@skywaysuites.co.ke');
   const [smtpPassword, setSmtpPassword] = useState('^we;RW{8OMGUOazE');
@@ -323,7 +323,36 @@ export function AdminSettings() {
         toast.success(`Test email sent successfully to ${testEmail}!`);
         setTestEmail(''); // Clear the input after successful send
       } else {
-        toast.error(data.details || data.error || 'Failed to send test email');
+        // Show detailed error with suggestion
+        if (data.code === 'ETIMEDOUT') {
+          toast.error('Connection timeout! Check the details below.', { duration: 5000 });
+          toast.warning(data.suggestion || 'Try using port 587 instead of 465', { duration: 8000 });
+          
+          // Auto-fix: Suggest changing to port 587
+          if (smtpPort === '465') {
+            setTimeout(() => {
+              const confirmFix = window.confirm(
+                '🔧 Quick Fix Available!\n\n' +
+                'Port 465 is blocked by Vercel. Would you like to automatically switch to port 587 (STARTTLS)?\n\n' +
+                'This will:\n' +
+                '✓ Change port from 465 → 587\n' +
+                '✓ Disable SSL/TLS (use STARTTLS instead)\n' +
+                '✓ Save settings automatically'
+              );
+              
+              if (confirmFix) {
+                setSmtpPort('587');
+                setSmtpSecure(false);
+                toast.success('Settings updated! Click "Save Email Settings" to save.');
+              }
+            }, 1000);
+          }
+        } else if (data.code === 'EAUTH') {
+          toast.error('Authentication failed: Check username and password', { duration: 5000 });
+        } else {
+          toast.error(data.details || data.error || 'Failed to send test email', { duration: 5000 });
+        }
+        
         console.error('Test email error:', data);
       }
     } catch (error) {
