@@ -13,6 +13,7 @@ export function Header() {
   const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = () => {
+    setMobileMenuOpen(false); // Close mobile menu if open
     logout();
     // Use setTimeout to avoid race conditions with React Router
     setTimeout(() => {

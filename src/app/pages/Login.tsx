@@ -24,12 +24,12 @@ export function Login() {
       
       // Get return URL with booking state
       const returnTo = searchParams.get('returnTo');
-      if (returnTo) {
-        // Decode and navigate to the return URL
-        navigate(decodeURIComponent(returnTo));
-      } else {
-        navigate('/');
-      }
+      const targetUrl = returnTo ? decodeURIComponent(returnTo) : '/';
+      
+      // Use setTimeout to avoid race conditions with React Router
+      setTimeout(() => {
+        navigate(targetUrl, { replace: true });
+      }, 0);
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? error.message 
