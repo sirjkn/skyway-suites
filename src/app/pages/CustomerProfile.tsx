@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getBookingsByCustomer, getProperties, Property, Booking, getPayments, Payment } from '../lib/api';
+import { getBookingsByCustomer, getProperties, Property, Booking, getPayments, Payment, updateUser } from '../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { MapPin, Calendar, Users, DollarSign } from 'lucide-react';
+import { Input } from '../components/ui/input';
+import { MapPin, Calendar, Users, DollarSign, User, Lock } from 'lucide-react';
 import { Link } from 'react-router';
+import { toast } from 'sonner';
 import { formatDateTime } from '../lib/dateUtils';
 
 export function CustomerProfile() {
@@ -110,11 +112,7 @@ export function CustomerProfile() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    return formatDateTime(dateString);
   };
 
   const getStatusColor = (status: string) => {

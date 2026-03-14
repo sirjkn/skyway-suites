@@ -114,7 +114,7 @@ export function PropertyDetails() {
       setCheckingApp(false);
 
       if (!appCheck.available && appCheck.conflictingBooking) {
-        const availableDate = new Date(appCheck.conflictingBooking.checkOut).toLocaleDateString();
+        const availableDate = formatDateOnly(appCheck.conflictingBooking.checkOut);
         setAppConflict({ hasConflict: true, availableDate });
       } else {
         setAppConflict({ hasConflict: false });
@@ -143,7 +143,7 @@ export function PropertyDetails() {
       setCheckingAirbnb(false);
 
       if (!airbnbCheck.available && airbnbCheck.conflictDate) {
-        const availableDate = new Date(airbnbCheck.conflictDate).toLocaleDateString();
+        const availableDate = formatDateOnly(airbnbCheck.conflictDate);
         setAirbnbConflict({ hasConflict: true, availableDate });
       } else {
         setAirbnbConflict({ hasConflict: false });
@@ -174,7 +174,7 @@ export function PropertyDetails() {
     // Check Skyway Suites database availability
     const skywayCheck = await checkPropertyAvailability(id, checkIn, checkOut);
     if (!skywayCheck.available && skywayCheck.conflictingBooking) {
-      const availableDate = new Date(skywayCheck.conflictingBooking.checkOut).toLocaleDateString();
+      const availableDate = formatDateOnly(skywayCheck.conflictingBooking.checkOut);
       toast.error(`Property Booked, Available after ${availableDate}`, {
         style: {
           background: '#DC2626',
@@ -285,7 +285,7 @@ export function PropertyDetails() {
                   <div>
                     <p className="font-semibold text-red-800">Booked</p>
                     <p className="text-sm text-red-700">
-                      Available after {new Date(currentBooking.checkOut).toLocaleDateString()}
+                      Available after {formatDateOnly(currentBooking.checkOut)}
                     </p>
                   </div>
                 </div>

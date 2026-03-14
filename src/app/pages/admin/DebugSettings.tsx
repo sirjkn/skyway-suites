@@ -43,22 +43,18 @@ export default function DebugSettings() {
 
       const response = await fetch(`${API_BASE_URL}?endpoint=settings`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsArray),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save settings');
+        throw new Error('Failed to initialize settings');
       }
 
-      toast.success('Raptor settings initialized!');
-      
-      // Reload to confirm
-      setTimeout(loadRawSettings, 500);
+      toast.success('Raptor settings initialized successfully!');
+      loadRawSettings(); // Reload to show new settings
     } catch (error) {
-      console.error('Failed to initialize settings:', error);
+      console.error('Failed to initialize Raptor settings:', error);
       toast.error('Failed to initialize settings');
     } finally {
       setLoading(false);
@@ -69,20 +65,21 @@ export default function DebugSettings() {
     try {
       setLoading(true);
       
-      const response = await fetch(`${API_BASE_URL}?endpoint=init-email-templates`, {
+      const response = await fetch(`${API_BASE_URL}?endpoint=create-email-templates-table`, {
         method: 'POST',
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.details || 'Failed to create table');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || 'Failed to create table');
       }
 
-      const result = await response.json();
-      toast.success(result.message);
+      const data = await response.json();
+      toast.success(data.message || 'Email templates table created successfully!');
     } catch (error) {
-      console.error('Failed to create table:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create table');
+      console.error('Failed to create email templates table:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create table';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -50,6 +50,18 @@ function replaceTemplateVars(template: string, vars: Record<string, string>) {
   return result;
 }
 
+// Company details for email templates
+function getCompanyDetails() {
+  return {
+    companyName: 'Skyway Suites',
+    companyEmail: 'info@skywaysuites.co.ke',
+    companyPhone: '+254 712 345 678',
+    companyWebsite: 'www.skywaysuites.co.ke',
+    companyLocation: 'Nairobi, Kenya',
+    companyLogo: 'https://skywaysuites.co.ke/logo.png'
+  };
+}
+
 // Helper to transform database row to API format for properties
 function transformProperty(row: any) {
   return {

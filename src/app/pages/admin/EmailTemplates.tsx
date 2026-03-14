@@ -411,6 +411,12 @@ export default function EmailTemplates() {
       paymentMethod: 'M-Pesa',
       amount: '50,000',
       currentYear: new Date().getFullYear().toString(),
+      companyName: 'Skyway Suites',
+      companyEmail: 'info@skywaysuites.co.ke',
+      companyPhone: '+254 712 345 678',
+      companyWebsite: 'www.skywaysuites.co.ke',
+      companyLocation: 'Nairobi, Kenya',
+      companyLogo: 'https://skywaysuites.co.ke/logo.png',
     };
 
     let preview = editedHtml;
@@ -465,20 +471,54 @@ export default function EmailTemplates() {
                 <CardTitle className="text-sm">Available Variables</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-1 text-xs font-mono">
-                  <div className="text-gray-600">Use these placeholders:</div>
-                  <div>{'{{customerName}}'}</div>
-                  <div>{'{{customerEmail}}'}</div>
-                  <div>{'{{customerPhone}}'}</div>
-                  <div>{'{{propertyTitle}}'}</div>
-                  <div>{'{{checkIn}}'}</div>
-                  <div>{'{{checkOut}}'}</div>
-                  <div>{'{{guests}}'}</div>
-                  <div>{'{{totalPrice}}'}</div>
-                  <div>{'{{totalPaid}}'}</div>
-                  <div>{'{{paymentMethod}}'}</div>
-                  <div>{'{{amount}}'}</div>
-                  <div>{'{{currentYear}}'}</div>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-xs font-semibold text-gray-700 mb-1">Customer Details:</div>
+                    <div className="space-y-1 text-xs font-mono">
+                      <div>{'{{customerName}}'}</div>
+                      <div>{'{{customerEmail}}'}</div>
+                      <div>{'{{customerPhone}}'}</div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-xs font-semibold text-gray-700 mb-1">Booking Details:</div>
+                    <div className="space-y-1 text-xs font-mono">
+                      <div>{'{{propertyTitle}}'}</div>
+                      <div>{'{{checkIn}}'}</div>
+                      <div>{'{{checkOut}}'}</div>
+                      <div>{'{{guests}}'}</div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-xs font-semibold text-gray-700 mb-1">Payment Details:</div>
+                    <div className="space-y-1 text-xs font-mono">
+                      <div>{'{{totalPrice}}'}</div>
+                      <div>{'{{totalPaid}}'}</div>
+                      <div>{'{{paymentMethod}}'}</div>
+                      <div>{'{{amount}}'}</div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-xs font-semibold text-gray-700 mb-1">Company Details:</div>
+                    <div className="space-y-1 text-xs font-mono">
+                      <div>{'{{companyName}}'}</div>
+                      <div>{'{{companyEmail}}'}</div>
+                      <div>{'{{companyPhone}}'}</div>
+                      <div>{'{{companyWebsite}}'}</div>
+                      <div>{'{{companyLocation}}'}</div>
+                      <div>{'{{companyLogo}}'}</div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-xs font-semibold text-gray-700 mb-1">Other:</div>
+                    <div className="space-y-1 text-xs font-mono">
+                      <div>{'{{currentYear}}'}</div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
