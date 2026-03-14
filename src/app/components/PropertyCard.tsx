@@ -80,14 +80,14 @@ export function PropertyCard({ property }: PropertyCardProps) {
             className="h-48 bg-cover bg-center"
             style={{ backgroundImage: `url('${property.image}')` }}
           />
-          {/* Booked Status Badge */}
+          {/* Booked Status Badge - Top Right */}
           {bookedUntil && (
-            <div className="absolute top-3 left-3 bg-red-600 text-white px-3 py-1.5 rounded-md font-semibold shadow-lg">
-              Booked until {bookedUntil}
+            <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-md text-xs font-semibold shadow-lg">
+              Booked (available on {bookedUntil})
             </div>
           )}
-          {/* Price Badge - Positioned inside photo */}
-          <div className="absolute bottom-3 right-3 bg-red-600 text-white px-3 py-1.5 rounded-md font-semibold shadow-lg">
+          {/* Price Badge - Bottom Right, Orange, 25% smaller */}
+          <div className="absolute bottom-3 right-3 bg-orange-500 text-white px-2.5 py-1 rounded-md text-sm font-semibold shadow-lg">
             KES {property.price.toLocaleString()}/night
           </div>
         </div>

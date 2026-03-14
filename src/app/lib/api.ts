@@ -241,6 +241,7 @@ export async function createProperty(property: Omit<Property, 'id'>): Promise<Pr
     guests: property.guests,
     category: property.category,
     image: property.image,
+    photos: property.photos || [],
     amenities: property.amenities,
     available: property.available,
     ical_export_url: property.icalUrl || '',
@@ -273,6 +274,7 @@ export async function updateProperty(id: string, property: Partial<Property>): P
   if (property.guests !== undefined) apiProperty.guests = property.guests;
   if (property.category !== undefined) apiProperty.category = property.category;
   if (property.image !== undefined) apiProperty.image = property.image;
+  if (property.photos !== undefined) apiProperty.photos = property.photos;
   if (property.amenities !== undefined) apiProperty.amenities = property.amenities;
   if (property.available !== undefined) apiProperty.available = property.available;
   if (property.icalUrl !== undefined) apiProperty.ical_export_url = property.icalUrl;

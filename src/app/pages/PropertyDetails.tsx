@@ -360,10 +360,10 @@ export function PropertyDetails() {
           {/* Booking Card */}
           <div>
             <Card className="sticky top-24">
-              <CardHeader>
+              <CardHeader className="bg-orange-500 text-white rounded-t-lg">
                 <CardTitle className="flex justify-between items-center">
                   <span className="text-2xl">KES {property.price.toLocaleString()}</span>
-                  <span className="text-sm font-normal text-gray-600">per night</span>
+                  <span className="text-sm font-normal text-white/90">per night</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>

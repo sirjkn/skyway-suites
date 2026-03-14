@@ -23,6 +23,7 @@ export function AdminProperties() {
   const [airbnbBookings, setAirbnbBookings] = useState<Array<{ checkIn: string; checkOut: string }>>([]);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -307,20 +308,38 @@ export function AdminProperties() {
     const files = e.target.files;
     if (files && files.length > 0) {
       setIsCompressing(true);
-      toast.info(`Compressing ${files.length} image(s) to WebP (max 50KB each)...`);
+      setUploadProgress({ current: 0, total: files.length });
+      toast.info(`Starting upload of ${files.length} image(s)...`);
       
       try {
-        const compressedImages: CompressedImage[] = await compressMultipleImages(Array.from(files), 50);
+        const filesArray = Array.from(files);
+        const compressedImages: CompressedImage[] = [];
+        
+        // Compress images one by one with progress tracking
+        for (let i = 0; i < filesArray.length; i++) {
+          setUploadProgress({ current: i + 1, total: files.length });
+          toast.info(`Compressing image ${i + 1} of ${files.length}...`, {
+            id: 'compress-progress',
+            duration: 1000,
+          });
+          
+          const compressed = await compressMultipleImages([filesArray[i]], 50);
+          compressedImages.push(...compressed);
+        }
+        
         const imageUrls = compressedImages.map(img => img.dataUrl);
         setUploadedImages([...uploadedImages, ...imageUrls]);
         
         // Show compression results
         const totalSize = compressedImages.reduce((sum, img) => sum + img.size, 0);
-        toast.success(`${files.length} image(s) compressed! Total: ${totalSize}KB`);
+        toast.success(`✅ ${files.length} image(s) uploaded! Total: ${totalSize}KB`, {
+          id: 'compress-progress',
+        });
       } catch (error) {
         toast.error('Failed to compress images');
       } finally {
         setIsCompressing(false);
+        setUploadProgress(null);
       }
     }
   };
@@ -571,6 +590,26 @@ export function AdminProperties() {
                     </span>
                   )}
                 </div>
+                
+                {/* Upload Progress */}
+                {uploadProgress && (
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-blue-900">
+                        Uploading Images...
+                      </span>
+                      <span className="text-sm text-blue-700">
+                        {uploadProgress.current} / {uploadProgress.total}
+                      </span>
+                    </div>
+                    <div className="w-full bg-blue-200 rounded-full h-2.5">
+                      <div 
+                        className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                        style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Image Previews */}
                 {uploadedImages.length > 0 && (
