@@ -25,6 +25,7 @@ import { UsersManagement } from '../../components/UsersManagement';
 
 export function AdminSettings() {
   const [activeTab, setActiveTab] = useState('general');
+  const [paymentSubTab, setPaymentSubTab] = useState('mpesa');
   const [heroBackgroundUrl, setHeroBackgroundUrl] = useState('https://res.cloudinary.com/dc5d5zfos/image/upload/v1773134775/skyway-suites/yndkhqpgcxknpro3tjjd.webp');
   const [heroImages, setHeroImages] = useState<string[]>([]);
   const [isLoadingHero, setIsLoadingHero] = useState(true);
@@ -626,6 +627,19 @@ export function AdminSettings() {
             <div className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Notifications
+            </div>
+          </Tabs.Trigger>
+          <Tabs.Trigger
+            value="payments"
+            className={`px-4 py-2 -mb-px border-b-2 transition-colors ${
+              activeTab === 'payments'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Payments
             </div>
           </Tabs.Trigger>
         </Tabs.List>
@@ -1348,166 +1362,250 @@ export function AdminSettings() {
                 </Button>
               </CardContent>
             </Card>
+          </div>
+        </Tabs.Content>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Settings</CardTitle>
-                <CardDescription>Configure payment gateways for online transactions</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm mb-2 font-medium">Mpesa Consumer Key</label>
-                  <Input 
-                    value={mpesaConsumerKey}
-                    onChange={(e) => setMpesaConsumerKey(e.target.value)}
-                    placeholder="Your Mpesa Consumer Key"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-2 font-medium">Mpesa Consumer Secret</label>
-                  <Input 
-                    type="password"
-                    value={mpesaConsumerSecret}
-                    onChange={(e) => setMpesaConsumerSecret(e.target.value)}
-                    placeholder="Your Mpesa Consumer Secret"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-2 font-medium">Mpesa Shortcode</label>
-                  <Input 
-                    value={mpesaShortcode}
-                    onChange={(e) => setMpesaShortcode(e.target.value)}
-                    placeholder="Your Mpesa Shortcode"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-2 font-medium">Mpesa Passkey</label>
-                  <Input 
-                    type="password"
-                    value={mpesaPasskey}
-                    onChange={(e) => setMpesaPasskey(e.target.value)}
-                    placeholder="Your Mpesa Passkey"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-2 font-medium">Mpesa Callback URL</label>
-                  <Input 
-                    value={mpesaCallbackUrl}
-                    onChange={(e) => setMpesaCallbackUrl(e.target.value)}
-                    placeholder="Your Mpesa Callback URL"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-2 font-medium">Mpesa Environment</label>
-                  <select
-                    value={mpesaEnvironment}
-                    onChange={(e) => setMpesaEnvironment(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-                  >
-                    <option value="sandbox">Sandbox</option>
-                    <option value="live">Live</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm mb-2 font-medium">Testing Mpesa</label>
-                  <Switch.Root
-                    checked={testingMpesa}
-                    onCheckedChange={setTestingMpesa}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#6B7C3C] focus:ring-offset-2 ${
-                      testingMpesa ? 'bg-[#6B7C3C]' : 'bg-gray-200'
-                    }`}
-                  >
-                    <Switch.Thumb
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                        testingMpesa ? 'translate-x-5' : 'translate-x-0'
-                      }`}
-                    />
-                  </Switch.Root>
-                </div>
-                <div>
-                  <label className="block text-sm mb-2 font-medium">M-Pesa Test Phone (for validation)</label>
+        {/* Payments */}
+        <Tabs.Content value="payments">
+          <div className="max-w-4xl">
+            <Tabs.Root value={paymentSubTab} onValueChange={setPaymentSubTab}>
+              <Tabs.List className="flex gap-2 border-b mb-6">
+                <Tabs.Trigger
+                  value="mpesa"
+                  className={`px-4 py-2 -mb-px border-b-2 transition-colors ${
+                    paymentSubTab === 'mpesa'
+                      ? 'border-[#6B7C3C] text-[#6B7C3C]'
+                      : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
+                >
                   <div className="flex items-center gap-2">
-                    <Input 
-                      value={mpesaTestPhone}
-                      onChange={(e) => setMpesaTestPhone(e.target.value)}
-                      placeholder="254712345678"
-                      className="flex-1"
-                    />
-                    <Button
-                      onClick={handleTestMpesa}
-                      size="sm"
-                      disabled={testingMpesa}
-                      variant="outline"
-                      type="button"
-                    >
-                      <Smartphone className="h-4 w-4 mr-2" />
-                      {testingMpesa ? 'Testing...' : 'Test M-Pesa'}
-                    </Button>
+                    <Smartphone className="h-4 w-4" />
+                    M-Pesa
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Tests M-Pesa credentials by validating with Safaricom API
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm mb-2 font-medium">Paypal Client ID</label>
-                  <Input 
-                    value={paypalClientId}
-                    onChange={(e) => setPaypalClientId(e.target.value)}
-                    placeholder="Your Paypal Client ID"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-2 font-medium">Paypal Client Secret</label>
-                  <Input 
-                    type="password"
-                    value={paypalClientSecret}
-                    onChange={(e) => setPaypalClientSecret(e.target.value)}
-                    placeholder="Your Paypal Client Secret"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-2 font-medium">Paypal Environment</label>
-                  <select
-                    value={paypalEnvironment}
-                    onChange={(e) => setPaypalEnvironment(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-                  >
-                    <option value="sandbox">Sandbox</option>
-                    <option value="live">Live</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm mb-2 font-medium">Test PayPal Credentials</label>
-                  <Button
-                    onClick={handleTestPayPal}
-                    size="sm"
-                    disabled={testingPaypal}
-                    variant="outline"
-                    type="button"
-                    className="w-full"
-                  >
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    {testingPaypal ? 'Validating...' : 'Validate PayPal'}
-                  </Button>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Validates PayPal Client ID format
-                  </p>
-                </div>
-                <div className="p-3 bg-blue-50 rounded-md text-xs">
-                  <p className="mb-1.5"><strong>Setup Instructions:</strong></p>
-                  <ol className="list-decimal list-inside space-y-0.5 text-gray-700">
-                    <li>Create an account with Mpesa and PayPal</li>
-                    <li>Generate API keys and credentials from their dashboards</li>
-                    <li>Paste your credentials above</li>
-                    <li>Test payments to ensure everything is working</li>
-                  </ol>
-                </div>
-                <Button onClick={handleSavePaymentSettings}>
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Save Payment Settings
-                </Button>
-              </CardContent>
-            </Card>
+                </Tabs.Trigger>
+                <Tabs.Trigger
+                  value="paypal"
+                  className={`px-4 py-2 -mb-px border-b-2 transition-colors ${
+                    paymentSubTab === 'paypal'
+                      ? 'border-[#6B7C3C] text-[#6B7C3C]'
+                      : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    PayPal
+                  </div>
+                </Tabs.Trigger>
+              </Tabs.List>
+
+              {/* M-Pesa Sub-Tab */}
+              <Tabs.Content value="mpesa">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>M-Pesa Configuration</CardTitle>
+                    <CardDescription>Configure Safaricom M-Pesa for accepting mobile money payments</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Consumer Key</label>
+                      <Input 
+                        value={mpesaConsumerKey}
+                        onChange={(e) => setMpesaConsumerKey(e.target.value)}
+                        placeholder="Your M-Pesa Consumer Key"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Consumer Secret</label>
+                      <Input 
+                        type="password"
+                        value={mpesaConsumerSecret}
+                        onChange={(e) => setMpesaConsumerSecret(e.target.value)}
+                        placeholder="Your M-Pesa Consumer Secret"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Business Shortcode</label>
+                      <Input 
+                        value={mpesaShortcode}
+                        onChange={(e) => setMpesaShortcode(e.target.value)}
+                        placeholder="e.g., 174379"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Passkey</label>
+                      <Input 
+                        type="password"
+                        value={mpesaPasskey}
+                        onChange={(e) => setMpesaPasskey(e.target.value)}
+                        placeholder="Your M-Pesa Passkey"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Callback URL</label>
+                      <Input 
+                        value={mpesaCallbackUrl}
+                        onChange={(e) => setMpesaCallbackUrl(e.target.value)}
+                        placeholder="https://your-domain.com/api?endpoint=mpesa-callback"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Environment</label>
+                      <select
+                        value={mpesaEnvironment}
+                        onChange={(e) => setMpesaEnvironment(e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                      >
+                        <option value="sandbox">Sandbox (Testing)</option>
+                        <option value="live">Live (Production)</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Use Sandbox for testing, Live for production payments
+                      </p>
+                    </div>
+                    
+                    <hr className="my-4" />
+                    
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Test M-Pesa Integration</label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          value={mpesaTestPhone}
+                          onChange={(e) => setMpesaTestPhone(e.target.value)}
+                          placeholder="254712345678"
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={handleTestMpesa}
+                          size="sm"
+                          disabled={testingMpesa}
+                          variant="outline"
+                          type="button"
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          {testingMpesa ? 'Testing...' : 'Test M-Pesa'}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Validates M-Pesa credentials by connecting to Safaricom API
+                      </p>
+                    </div>
+                    
+                    <div className="p-4 bg-blue-50 rounded-md text-sm">
+                      <p className="font-semibold mb-2">📱 M-Pesa Setup Guide:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-gray-700">
+                        <li>Go to <a href="https://developer.safaricom.co.ke/" target="_blank" className="text-blue-600 hover:underline">developer.safaricom.co.ke</a></li>
+                        <li>Create an account and log in</li>
+                        <li>Create a new app in your dashboard</li>
+                        <li>Copy your Consumer Key, Consumer Secret, and Passkey</li>
+                        <li>Get your Business Shortcode (174379 for sandbox)</li>
+                        <li>Paste all credentials above and save</li>
+                      </ol>
+                    </div>
+                    
+                    <div className="flex gap-3">
+                      <Button onClick={handleSavePaymentSettings} className="flex-1">
+                        <Save className="h-4 w-4 mr-2" />
+                        Save M-Pesa Settings
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Tabs.Content>
+
+              {/* PayPal Sub-Tab */}
+              <Tabs.Content value="paypal">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>PayPal Configuration</CardTitle>
+                    <CardDescription>Configure PayPal for accepting credit card and PayPal payments</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Client ID</label>
+                      <Input 
+                        value={paypalClientId}
+                        onChange={(e) => setPaypalClientId(e.target.value)}
+                        placeholder="Your PayPal Client ID"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Client Secret (Optional)</label>
+                      <Input 
+                        type="password"
+                        value={paypalClientSecret}
+                        onChange={(e) => setPaypalClientSecret(e.target.value)}
+                        placeholder="Your PayPal Client Secret"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Only needed for server-side PayPal operations
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Environment</label>
+                      <select
+                        value={paypalEnvironment}
+                        onChange={(e) => setPaypalEnvironment(e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                      >
+                        <option value="sandbox">Sandbox (Testing)</option>
+                        <option value="live">Live (Production)</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Use Sandbox for testing, Live for production payments
+                      </p>
+                    </div>
+                    
+                    <hr className="my-4" />
+                    
+                    <div>
+                      <label className="block text-sm mb-2 font-medium">Test PayPal Integration</label>
+                      <Button
+                        onClick={handleTestPayPal}
+                        size="sm"
+                        disabled={testingPaypal}
+                        variant="outline"
+                        type="button"
+                        className="w-full"
+                      >
+                        {testingPaypal ? (
+                          <>
+                            <XCircle className="h-4 w-4 mr-2 animate-spin" />
+                            Validating...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Validate PayPal Credentials
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Validates PayPal Client ID format
+                      </p>
+                    </div>
+                    
+                    <div className="p-4 bg-blue-50 rounded-md text-sm">
+                      <p className="font-semibold mb-2">💳 PayPal Setup Guide:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-gray-700">
+                        <li>Go to <a href="https://developer.paypal.com/" target="_blank" className="text-blue-600 hover:underline">developer.paypal.com</a></li>
+                        <li>Log in with your PayPal account</li>
+                        <li>Go to "My Apps & Credentials"</li>
+                        <li>Create a new app or select an existing one</li>
+                        <li>Copy your Client ID (and optionally Client Secret)</li>
+                        <li>Paste credentials above and save</li>
+                      </ol>
+                    </div>
+                    
+                    <div className="flex gap-3">
+                      <Button onClick={handleSavePaymentSettings} className="flex-1">
+                        <Save className="h-4 w-4 mr-2" />
+                        Save PayPal Settings
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Tabs.Content>
+            </Tabs.Root>
           </div>
         </Tabs.Content>
       </Tabs.Root>

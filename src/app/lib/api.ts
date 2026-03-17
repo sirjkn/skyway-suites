@@ -673,6 +673,22 @@ export interface NotificationSettings {
     bookingConfirmed: { email: boolean; whatsapp: boolean };
   };
   
+  // Payment Settings - M-Pesa
+  mpesaConsumerKey?: string;
+  mpesaConsumerSecret?: string;
+  mpesaShortcode?: string;
+  mpesaPasskey?: string;
+  mpesaCallbackUrl?: string;
+  mpesaEnvironment?: string;
+  testingMpesa?: boolean;
+  mpesaTestPhone?: string;
+  
+  // Payment Settings - PayPal
+  paypalClientId?: string;
+  paypalClientSecret?: string;
+  paypalEnvironment?: string;
+  testingPaypal?: boolean;
+  
   // Test email
   testEmail?: string;
 }
@@ -802,6 +818,46 @@ export async function updateNotificationSettings(settings: NotificationSettings)
       key: 'notification_actions', 
       value: JSON.stringify(settings.notificationActions) 
     });
+  }
+  
+  // Payment Settings - M-Pesa
+  if (settings.mpesaConsumerKey !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'mpesa_consumer_key', value: settings.mpesaConsumerKey });
+  }
+  if (settings.mpesaConsumerSecret !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'mpesa_consumer_secret', value: settings.mpesaConsumerSecret });
+  }
+  if (settings.mpesaShortcode !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'mpesa_shortcode', value: settings.mpesaShortcode });
+  }
+  if (settings.mpesaPasskey !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'mpesa_passkey', value: settings.mpesaPasskey });
+  }
+  if (settings.mpesaCallbackUrl !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'mpesa_callback_url', value: settings.mpesaCallbackUrl });
+  }
+  if (settings.mpesaEnvironment !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'mpesa_environment', value: settings.mpesaEnvironment });
+  }
+  if (settings.testingMpesa !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'testing_mpesa', value: String(settings.testingMpesa) });
+  }
+  if (settings.mpesaTestPhone !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'mpesa_test_phone', value: settings.mpesaTestPhone });
+  }
+  
+  // Payment Settings - PayPal
+  if (settings.paypalClientId !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'paypal_client_id', value: settings.paypalClientId });
+  }
+  if (settings.paypalClientSecret !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'paypal_client_secret', value: settings.paypalClientSecret });
+  }
+  if (settings.paypalEnvironment !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'paypal_environment', value: settings.paypalEnvironment });
+  }
+  if (settings.testingPaypal !== undefined) {
+    settingsArray.push({ category: 'notifications', key: 'testing_paypal', value: String(settings.testingPaypal) });
   }
   
   // Test email - if provided, send test email
