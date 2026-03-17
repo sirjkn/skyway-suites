@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getBookingsByCustomer, getProperties, Property, Booking, getPayments, Payment, updateUser } from '../lib/api';
+import { getBookingsByCustomer, getProperties, Property, Booking, getPayments, Payment, updateUser, Review, getReviewByBooking, createReview } from '../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { MapPin, Calendar, Users, DollarSign, User, Lock } from 'lucide-react';
+import { MapPin, Calendar, Users, DollarSign, User, Lock, Star, MessageSquare, X } from 'lucide-react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { formatDateTime } from '../lib/dateUtils';
@@ -26,6 +26,14 @@ export function CustomerProfile() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  
+  // Review state
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [bookingReviews, setBookingReviews] = useState<Record<string, Review | null>>({});
 
   useEffect(() => {
     loadData();
