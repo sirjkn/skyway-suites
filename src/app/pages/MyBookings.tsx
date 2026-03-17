@@ -36,6 +36,8 @@ export function MyBookings() {
   const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'paypal' | null>(null);
   const [mpesaPhone, setMpesaPhone] = useState('');
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [checkoutRequestId, setCheckoutRequestId] = useState<string | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -145,7 +147,12 @@ export function MyBookings() {
       if (data.success) {
         toast.success('📱 M-Pesa payment request sent! Check your phone to complete payment.');
         toast.info('Please enter your M-Pesa PIN on your phone', { duration: 5000 });
-        setShowPaymentDialog(false);
+        
+        // Store checkout request ID for manual status check
+        setCheckoutRequestId(data.checkoutRequestId);
+        
+        // Don't close dialog yet - let user check status
+        setPaymentMethod(null); // Reset to show status check option
         
         // Poll for payment confirmation
         setTimeout(() => {
@@ -160,6 +167,50 @@ export function MyBookings() {
       toast.error('Failed to process M-Pesa payment. Check console for details.');
     } finally {
       setProcessingPayment(false);
+    }
+  };
+
+  const handleCheckPaymentStatus = async () => {
+    if (!checkoutRequestId) {
+      toast.error('No payment request found to check');
+      return;
+    }
+
+    try {
+      setCheckingStatus(true);
+      toast.info('🔍 Checking payment status...');
+
+      const response = await fetch('/api?endpoint=mpesa-query-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ checkoutRequestId }),
+      });
+
+      const data = await response.json();
+      console.log('📊 Payment Status:', data);
+
+      if (data.success && data.status === 'completed') {
+        toast.success('✅ Payment confirmed! Your booking is now paid.');
+        setShowPaymentDialog(false);
+        setCheckoutRequestId(null);
+        loadData(); // Reload bookings
+      } else if (data.status === 'cancelled') {
+        toast.error('❌ Payment was cancelled');
+        setCheckoutRequestId(null);
+      } else if (data.status === 'timeout') {
+        toast.error('⏱️ Payment request expired. Please try again.');
+        setCheckoutRequestId(null);
+      } else if (data.status === 'failed') {
+        toast.error(`❌ Payment failed: ${data.message}`);
+        setCheckoutRequestId(null);
+      } else {
+        toast.info('⏳ Payment is still pending. Please complete it on your phone.');
+      }
+    } catch (error) {
+      console.error('❌ Status check error:', error);
+      toast.error('Failed to check payment status');
+    } finally {
+      setCheckingStatus(false);
     }
   };
 
@@ -454,7 +505,7 @@ export function MyBookings() {
                 </div>
 
                 {/* Payment Method Selection */}
-                {!paymentMethod && (
+                {!paymentMethod && !checkoutRequestId && (
                   <div className="space-y-3">
                     <div className="text-sm font-semibold mb-2">Choose Payment Method</div>
                     
@@ -488,6 +539,52 @@ export function MyBookings() {
                           <div className="text-sm text-gray-600">Pay with PayPal or any credit card</div>
                         </div>
                       </div>
+                    </button>
+                  </div>
+                )}
+
+                {/* M-Pesa Payment Status Check */}
+                {!paymentMethod && checkoutRequestId && (
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <Clock className="h-5 w-5 text-blue-600 mt-0.5" />
+                        <div className="flex-1">
+                          <div className="font-semibold text-blue-900 mb-1">Payment Request Sent</div>
+                          <div className="text-sm text-blue-700">
+                            Please check your phone and enter your M-Pesa PIN to complete the payment.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={handleCheckPaymentStatus}
+                      disabled={checkingStatus}
+                      className="w-full"
+                      style={{ backgroundColor: '#6B7C3C' }}
+                    >
+                      {checkingStatus ? (
+                        <>
+                          <Clock className="h-4 w-4 mr-2 animate-spin" />
+                          Checking Status...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Check Payment Status
+                        </>
+                      )}
+                    </Button>
+
+                    <button
+                      onClick={() => {
+                        setCheckoutRequestId(null);
+                        setPaymentMethod(null);
+                      }}
+                      className="w-full text-sm text-gray-600 hover:text-gray-900"
+                    >
+                      ← Try a different payment method
                     </button>
                   </div>
                 )}

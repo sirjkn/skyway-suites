@@ -1496,6 +1496,13 @@ export function AdminSettings() {
                         onChange={(e) => setMpesaCallbackUrl(e.target.value)}
                         placeholder="https://your-domain.com/api?endpoint=mpesa-callback"
                       />
+                      <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-xs text-amber-800">
+                          <strong>⚠️ Important for Localhost:</strong> M-Pesa callbacks don't work on localhost. 
+                          Customers can use the "Check Payment Status" button after payment instead. 
+                          For production, deploy to Vercel and use: <code className="bg-amber-100 px-1 rounded">https://your-app.vercel.app/api?endpoint=mpesa-callback</code>
+                        </p>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm mb-2 font-medium">Environment</label>

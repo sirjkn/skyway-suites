@@ -1920,6 +1920,167 @@ You can now use this SMTP configuration for automated notifications.
     }
 
     // ============================================
+    // M-PESA TRANSACTION STATUS QUERY (Manual Check)
+    // ============================================
+    if (endpoint === 'mpesa-query-status' && req.method === 'POST') {
+      const { checkoutRequestId } = req.body;
+      
+      console.log('🔍 Querying M-Pesa transaction status:', checkoutRequestId);
+      
+      try {
+        // Get M-Pesa settings
+        const settingsResult = await query(
+          `SELECT key, value FROM settings WHERE category = 'notifications' AND key IN ($1, $2, $3, $4, $5)`,
+          ['mpesa_consumer_key', 'mpesa_consumer_secret', 'mpesa_shortcode', 'mpesa_passkey', 'mpesa_environment']
+        );
+        
+        const settings: any = {};
+        settingsResult.rows.forEach((row: any) => {
+          const camelKey = row.key.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase());
+          settings[camelKey] = row.value;
+        });
+        
+        const MPESA_CONSUMER_KEY = settings.mpesaConsumerKey || '';
+        const MPESA_CONSUMER_SECRET = settings.mpesaConsumerSecret || '';
+        const MPESA_SHORTCODE = settings.mpesaShortcode || '';
+        const MPESA_PASSKEY = settings.mpesaPasskey || '';
+        const mpesaEnvironment = settings.mpesaEnvironment || 'sandbox';
+        
+        const baseUrl = mpesaEnvironment === 'production' 
+          ? 'https://api.safaricom.co.ke' 
+          : 'https://sandbox.safaricom.co.ke';
+        
+        // Get access token
+        const authString = Buffer.from(`${MPESA_CONSUMER_KEY}:${MPESA_CONSUMER_SECRET}`).toString('base64');
+        const authResponse = await fetch(`${baseUrl}/oauth/v1/generate?grant_type=client_credentials`, {
+          headers: {
+            'Authorization': `Basic ${authString}`
+          }
+        });
+        
+        const authData = await authResponse.json();
+        const accessToken = authData.access_token;
+        
+        // Generate timestamp and password
+        const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+        const password = Buffer.from(`${MPESA_SHORTCODE}${MPESA_PASSKEY}${timestamp}`).toString('base64');
+        
+        // Query transaction status
+        const queryResponse = await fetch(`${baseUrl}/mpesa/stkpushquery/v1/query`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            BusinessShortCode: MPESA_SHORTCODE,
+            Password: password,
+            Timestamp: timestamp,
+            CheckoutRequestID: checkoutRequestId
+          })
+        });
+        
+        const queryData = await queryResponse.json();
+        console.log('✅ M-Pesa Query Response:', queryData);
+        
+        // Check if payment was successful
+        if (queryData.ResultCode === '0') {
+          // Payment successful - update database
+          const transactionResult = await query(
+            'SELECT booking_id, amount FROM mpesa_transactions WHERE checkout_request_id = $1',
+            [checkoutRequestId]
+          );
+          
+          if (transactionResult.rows.length > 0) {
+            const { booking_id, amount } = transactionResult.rows[0];
+            
+            // Get booking details
+            const bookingResult = await query(
+              'SELECT customer_id FROM bookings WHERE id = $1',
+              [booking_id]
+            );
+            
+            if (bookingResult.rows.length > 0) {
+              const customerId = bookingResult.rows[0].customer_id;
+              
+              // Check if payment already exists
+              const existingPayment = await query(
+                'SELECT id FROM payments WHERE booking_id = $1 AND payment_method = $2',
+                [booking_id, 'MPesa']
+              );
+              
+              if (existingPayment.rows.length === 0) {
+                // Create payment record
+                await query(
+                  'INSERT INTO payments (booking_id, customer_id, amount, payment_method, status, transaction_id) VALUES ($1, $2, $3, $4, $5, $6)',
+                  [booking_id, customerId, amount, 'MPesa', 'paid', checkoutRequestId]
+                );
+                
+                // Update transaction status
+                await query(
+                  'UPDATE mpesa_transactions SET status = $1 WHERE checkout_request_id = $2',
+                  ['completed', checkoutRequestId]
+                );
+                
+                console.log('✅ Payment record created from query');
+              }
+              
+              return res.status(200).json({
+                success: true,
+                status: 'completed',
+                message: 'Payment completed successfully',
+                resultCode: queryData.ResultCode
+              });
+            }
+          }
+        } else if (queryData.ResultCode === '1032') {
+          // Request cancelled by user
+          await query(
+            'UPDATE mpesa_transactions SET status = $1 WHERE checkout_request_id = $2',
+            ['cancelled', checkoutRequestId]
+          );
+          
+          return res.status(200).json({
+            success: false,
+            status: 'cancelled',
+            message: 'Payment was cancelled',
+            resultCode: queryData.ResultCode
+          });
+        } else if (queryData.ResultCode === '1037') {
+          // Timeout - user didn't enter PIN
+          return res.status(200).json({
+            success: false,
+            status: 'timeout',
+            message: 'Payment request expired',
+            resultCode: queryData.ResultCode
+          });
+        } else if (queryData.ResultCode === '1') {
+          // Insufficient funds
+          return res.status(200).json({
+            success: false,
+            status: 'failed',
+            message: 'Insufficient funds',
+            resultCode: queryData.ResultCode
+          });
+        } else {
+          // Still pending or other status
+          return res.status(200).json({
+            success: false,
+            status: 'pending',
+            message: queryData.ResultDesc || 'Payment is still pending',
+            resultCode: queryData.ResultCode
+          });
+        }
+      } catch (error) {
+        console.error('❌ M-Pesa Query Error:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to query payment status'
+        });
+      }
+    }
+
+    // ============================================
     // REVIEWS ENDPOINTS
     // Get Payment Settings (for frontend)
     if (endpoint === 'get-payment-settings' && req.method === 'GET') {
