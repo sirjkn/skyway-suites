@@ -1986,22 +1986,52 @@ You can now use this SMTP configuration for automated notifications.
           : 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
         
         console.log('🧪 Token URL:', tokenUrl);
+        console.log('🧪 Auth header (first 20 chars):', auth.substring(0, 20) + '...');
           
         const tokenResponse = await fetch(tokenUrl, {
-          headers: { 'Authorization': `Basic ${auth}` }
+          method: 'GET',
+          headers: { 
+            'Authorization': `Basic ${auth}`,
+            'Content-Type': 'application/json'
+          }
         });
         
         console.log('🧪 Token response status:', tokenResponse.status);
         
+        // Get response body for better error messages
+        const responseText = await tokenResponse.text();
+        console.log('🧪 Token response body:', responseText);
+        
         if (!tokenResponse.ok) {
-          console.error('❌ Token request failed:', tokenResponse.status, tokenResponse.statusText);
+          let errorMessage = tokenResponse.statusText;
+          
+          // Try to parse error details from response
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.error_description || errorData.errorMessage || errorData.message || tokenResponse.statusText;
+            console.error('❌ M-Pesa API error details:', errorData);
+          } catch (e) {
+            console.error('❌ Token request failed:', tokenResponse.status, responseText);
+          }
+          
           return res.status(400).json({
             success: false,
-            message: `M-Pesa API error: ${tokenResponse.statusText}`
+            message: `M-Pesa API error: ${errorMessage}`
           });
         }
         
-        const tokenData = await tokenResponse.json();
+        // Parse response
+        let tokenData;
+        try {
+          tokenData = JSON.parse(responseText);
+        } catch (e) {
+          console.error('❌ Failed to parse token response:', responseText);
+          return res.status(500).json({
+            success: false,
+            message: 'Invalid response from M-Pesa API'
+          });
+        }
+        
         console.log('🧪 Token data:', tokenData);
         
         if (tokenData.access_token) {
