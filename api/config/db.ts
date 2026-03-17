@@ -12,6 +12,57 @@ if (typeof WebSocket === 'undefined') {
 
 // Singleton connection pool
 let pool: Pool | null = null;
+let migrationRun = false;
+
+// Auto-migration: Create missing tables on startup
+async function runMigrations(pool: Pool) {
+  if (migrationRun) return;
+  
+  try {
+    console.log('🔄 Checking for required database tables...');
+    
+    // Create M-Pesa transactions table if it doesn't exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS mpesa_transactions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        checkout_request_id VARCHAR(255) UNIQUE NOT NULL,
+        booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
+        phone_number VARCHAR(20) NOT NULL,
+        amount DECIMAL(10, 2) NOT NULL,
+        mpesa_receipt_number VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
+    // Create indexes
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_mpesa_checkout_request ON mpesa_transactions(checkout_request_id);
+    `);
+    
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_mpesa_booking ON mpesa_transactions(booking_id);
+    `);
+    
+    // Add transaction_id to payments table if it doesn't exist
+    await pool.query(`
+      ALTER TABLE payments 
+      ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(255);
+    `);
+    
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_payments_transaction ON payments(transaction_id);
+    `);
+    
+    console.log('✅ Database migrations completed successfully');
+    migrationRun = true;
+  } catch (error) {
+    console.error('⚠️ Migration error (may be safe to ignore if tables exist):', error);
+    // Don't throw - continue even if migrations fail
+    migrationRun = true; // Mark as run to avoid retry loops
+  }
+}
 
 export function getPool(): Pool {
   if (!pool) {
@@ -33,6 +84,9 @@ export function getPool(): Pool {
     pool.query('SELECT NOW()')
       .then(() => console.log('✅ Neon serverless database pool initialized and tested'))
       .catch((err) => console.error('❌ Neon database connection test failed:', err.message));
+    
+    // Run migrations
+    runMigrations(pool);
   }
   return pool;
 }
@@ -50,4 +104,10 @@ export async function query(text: string, params?: any[]) {
     console.error('❌ Query failed', { text, duration, error: String(error) });
     throw error;
   }
+}
+
+// Export function to ensure migrations run
+export async function ensureMigrationsRun() {
+  const pool = getPool();
+  await runMigrations(pool);
 }

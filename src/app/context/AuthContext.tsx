@@ -9,7 +9,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ user: User; token: string }>;
   logout: () => void;
   signup: (email: string, password: string, name: string, phone: string) => Promise<void>;
   isAdmin: boolean;
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(mockUser);
         localStorage.setItem('token', mockToken);
         localStorage.setItem('user', JSON.stringify(mockUser));
-        return;
+        return { user: mockUser, token: mockToken };
       }
 
       // Real API call for production
@@ -129,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('user', JSON.stringify(data.user));
       // Mark that we have real users since we successfully authenticated
       setHasRealUsers(true);
+      return { user: data.user, token: data.token };
     } catch (error) {
       console.error('Login error:', error);
       throw error;

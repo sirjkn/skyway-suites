@@ -31,9 +31,18 @@ export function CreateAccount() {
       await signup(email, password, name, phone);
       toast.success('Account created successfully!');
       
-      // Get return URL with booking state
+      // Get return URL from search params
       const returnTo = searchParams.get('returnTo');
-      const targetUrl = returnTo ? decodeURIComponent(returnTo) : '/';
+      
+      // Smart redirect logic (new accounts are always customers, so go to bookings if from home)
+      let targetUrl = '/my-bookings';
+      
+      if (returnTo) {
+        // Returning to a specific page
+        targetUrl = decodeURIComponent(returnTo);
+      }
+      
+      console.log('🔀 Redirecting to:', targetUrl);
       
       // Use setTimeout to avoid race conditions with React Router
       setTimeout(() => {

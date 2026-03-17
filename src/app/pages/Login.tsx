@@ -19,12 +19,30 @@ export function Login() {
     e.preventDefault();
     setIsLoggingIn(true);
     try {
-      await login(email, password);
+      const result = await login(email, password);
       toast.success('Login successful!');
       
-      // Get return URL with booking state
+      // Get user role from the login result
+      const userRole = result?.user?.role;
+      
+      // Get return URL from search params
       const returnTo = searchParams.get('returnTo');
-      const targetUrl = returnTo ? decodeURIComponent(returnTo) : '/';
+      
+      // Smart redirect logic
+      let targetUrl = '/';
+      
+      if (userRole === 'admin') {
+        // Admins always go to dashboard
+        targetUrl = '/admin';
+      } else if (returnTo) {
+        // Customer returning to a specific page
+        targetUrl = decodeURIComponent(returnTo);
+      } else {
+        // Customer logged in from home page (no returnTo) - go to bookings
+        targetUrl = '/my-bookings';
+      }
+      
+      console.log('🔀 Redirecting to:', targetUrl);
       
       // Use setTimeout to avoid race conditions with React Router
       setTimeout(() => {

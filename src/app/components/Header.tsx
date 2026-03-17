@@ -20,6 +20,16 @@ export function Header() {
       navigate('/', { replace: true });
     }, 0);
   };
+  
+  // Helper to create login URL with return path
+  const getLoginUrl = () => {
+    // If on home page, don't add returnTo (will redirect to /my-bookings or /admin)
+    if (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/create-account') {
+      return '/login';
+    }
+    // Otherwise, return to current page after login
+    return `/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`;
+  };
 
   const navLinks = [
     { path: '/', label: 'Home' },
@@ -96,7 +106,7 @@ export function Header() {
                 </>
               ) : (
                 <>
-                  <Link to="/login">
+                  <Link to={getLoginUrl()}>
                     <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
                       Login
                     </Button>
@@ -203,7 +213,7 @@ export function Header() {
             </div>
           ) : (
             <div className="space-y-3">
-              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+              <Link to={getLoginUrl()} onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="outline" size="sm" className="w-full bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
                   Login
                 </Button>
