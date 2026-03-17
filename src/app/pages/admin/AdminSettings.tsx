@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { Save, Upload, X, Wrench, Mail, MessageCircle, Bell, Settings as SettingsIcon, Users as UsersIcon, Database } from 'lucide-react';
+import { CreditCard, Smartphone, Send, CheckCircle, XCircle } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
 import * as Switch from '@radix-ui/react-switch';
 import { Button } from '../../components/ui/button';
@@ -76,12 +77,27 @@ export function AdminSettings() {
   const [maintenanceMessage, setMaintenanceMessage] = useState("We're currently performing scheduled maintenance to improve your experience.");
   const [maintenanceEstimatedTime, setMaintenanceEstimatedTime] = useState("We'll be back soon");
 
+  // Payment Settings State
+  const [mpesaConsumerKey, setMpesaConsumerKey] = useState('');
+  const [mpesaConsumerSecret, setMpesaConsumerSecret] = useState('');
+  const [mpesaShortcode, setMpesaShortcode] = useState('');
+  const [mpesaPasskey, setMpesaPasskey] = useState('');
+  const [mpesaCallbackUrl, setMpesaCallbackUrl] = useState('');
+  const [mpesaEnvironment, setMpesaEnvironment] = useState('sandbox');
+  const [paypalClientId, setPaypalClientId] = useState('');
+  const [paypalClientSecret, setPaypalClientSecret] = useState('');
+  const [paypalEnvironment, setPaypalEnvironment] = useState('sandbox');
+  const [testingMpesa, setTestingMpesa] = useState(false);
+  const [testingPaypal, setTestingPaypal] = useState(false);
+  const [mpesaTestPhone, setMpesaTestPhone] = useState('254712345678');
+
   useEffect(() => {
     loadHeroSettings();
     loadCloudinaryConfig();
     loadMaintenanceSettings();
     loadCompanyInfo();
     loadNotificationSettings();
+    loadPaymentSettings();
   }, []);
 
   const loadCloudinaryConfig = async () => {
@@ -442,6 +458,53 @@ export function AdminSettings() {
       toast.success('Notification settings saved!');
     } catch (error) {
       toast.error('Failed to save notification settings');
+    }
+  };
+
+  const loadPaymentSettings = async () => {
+    try {
+      const settings = await getNotificationSettings();
+      if (settings) {
+        // Load Mpesa settings
+        if (settings.mpesaConsumerKey) setMpesaConsumerKey(settings.mpesaConsumerKey);
+        if (settings.mpesaConsumerSecret) setMpesaConsumerSecret(settings.mpesaConsumerSecret);
+        if (settings.mpesaShortcode) setMpesaShortcode(settings.mpesaShortcode);
+        if (settings.mpesaPasskey) setMpesaPasskey(settings.mpesaPasskey);
+        if (settings.mpesaCallbackUrl) setMpesaCallbackUrl(settings.mpesaCallbackUrl);
+        if (settings.mpesaEnvironment) setMpesaEnvironment(settings.mpesaEnvironment);
+        if (settings.testingMpesa) setTestingMpesa(settings.testingMpesa === 'true' || settings.testingMpesa === true);
+        if (settings.mpesaTestPhone) setMpesaTestPhone(settings.mpesaTestPhone);
+        
+        // Load PayPal settings
+        if (settings.paypalClientId) setPaypalClientId(settings.paypalClientId);
+        if (settings.paypalClientSecret) setPaypalClientSecret(settings.paypalClientSecret);
+        if (settings.paypalEnvironment) setPaypalEnvironment(settings.paypalEnvironment);
+        if (settings.testingPaypal) setTestingPaypal(settings.testingPaypal === 'true' || settings.testingPaypal === true);
+      }
+    } catch (error) {
+      console.error('Failed to load payment settings');
+    }
+  };
+
+  const handleSavePaymentSettings = async () => {
+    try {
+      await updateNotificationSettings({
+        mpesaConsumerKey,
+        mpesaConsumerSecret,
+        mpesaShortcode,
+        mpesaPasskey,
+        mpesaCallbackUrl,
+        mpesaEnvironment,
+        testingMpesa,
+        mpesaTestPhone,
+        paypalClientId,
+        paypalClientSecret,
+        paypalEnvironment,
+        testingPaypal,
+      });
+      toast.success('Payment settings saved!');
+    } catch (error) {
+      toast.error('Failed to save payment settings');
     }
   };
 
@@ -1210,6 +1273,149 @@ export function AdminSettings() {
                 <Button onClick={handleSaveNotificationSettings}>
                   <Save className="h-4 w-4 mr-2" />
                   Save Notification Actions
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Settings</CardTitle>
+                <CardDescription>Configure payment gateways for online transactions</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Mpesa Consumer Key</label>
+                  <Input 
+                    value={mpesaConsumerKey}
+                    onChange={(e) => setMpesaConsumerKey(e.target.value)}
+                    placeholder="Your Mpesa Consumer Key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Mpesa Consumer Secret</label>
+                  <Input 
+                    type="password"
+                    value={mpesaConsumerSecret}
+                    onChange={(e) => setMpesaConsumerSecret(e.target.value)}
+                    placeholder="Your Mpesa Consumer Secret"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Mpesa Shortcode</label>
+                  <Input 
+                    value={mpesaShortcode}
+                    onChange={(e) => setMpesaShortcode(e.target.value)}
+                    placeholder="Your Mpesa Shortcode"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Mpesa Passkey</label>
+                  <Input 
+                    type="password"
+                    value={mpesaPasskey}
+                    onChange={(e) => setMpesaPasskey(e.target.value)}
+                    placeholder="Your Mpesa Passkey"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Mpesa Callback URL</label>
+                  <Input 
+                    value={mpesaCallbackUrl}
+                    onChange={(e) => setMpesaCallbackUrl(e.target.value)}
+                    placeholder="Your Mpesa Callback URL"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Mpesa Environment</label>
+                  <select
+                    value={mpesaEnvironment}
+                    onChange={(e) => setMpesaEnvironment(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  >
+                    <option value="sandbox">Sandbox</option>
+                    <option value="live">Live</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Testing Mpesa</label>
+                  <Switch.Root
+                    checked={testingMpesa}
+                    onCheckedChange={setTestingMpesa}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#6B7C3C] focus:ring-offset-2 ${
+                      testingMpesa ? 'bg-[#6B7C3C]' : 'bg-gray-200'
+                    }`}
+                  >
+                    <Switch.Thumb
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        testingMpesa ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </Switch.Root>
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Mpesa Test Phone</label>
+                  <Input 
+                    value={mpesaTestPhone}
+                    onChange={(e) => setMpesaTestPhone(e.target.value)}
+                    placeholder="Your Mpesa Test Phone"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Paypal Client ID</label>
+                  <Input 
+                    value={paypalClientId}
+                    onChange={(e) => setPaypalClientId(e.target.value)}
+                    placeholder="Your Paypal Client ID"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Paypal Client Secret</label>
+                  <Input 
+                    type="password"
+                    value={paypalClientSecret}
+                    onChange={(e) => setPaypalClientSecret(e.target.value)}
+                    placeholder="Your Paypal Client Secret"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Paypal Environment</label>
+                  <select
+                    value={paypalEnvironment}
+                    onChange={(e) => setPaypalEnvironment(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  >
+                    <option value="sandbox">Sandbox</option>
+                    <option value="live">Live</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm mb-2 font-medium">Testing Paypal</label>
+                  <Switch.Root
+                    checked={testingPaypal}
+                    onCheckedChange={setTestingPaypal}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#6B7C3C] focus:ring-offset-2 ${
+                      testingPaypal ? 'bg-[#6B7C3C]' : 'bg-gray-200'
+                    }`}
+                  >
+                    <Switch.Thumb
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        testingPaypal ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </Switch.Root>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-md text-xs">
+                  <p className="mb-1.5"><strong>Setup Instructions:</strong></p>
+                  <ol className="list-decimal list-inside space-y-0.5 text-gray-700">
+                    <li>Create an account with Mpesa and PayPal</li>
+                    <li>Generate API keys and credentials from their dashboards</li>
+                    <li>Paste your credentials above</li>
+                    <li>Test payments to ensure everything is working</li>
+                  </ol>
+                </div>
+                <Button onClick={handleSavePaymentSettings}>
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Save Payment Settings
                 </Button>
               </CardContent>
             </Card>

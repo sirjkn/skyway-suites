@@ -121,19 +121,26 @@ export function MyBookings() {
     try {
       setProcessingPayment(true);
       
-      // Call M-Pesa STK Push API
-      const response = await fetch('/api', {
+      console.log('🔍 M-Pesa Payment Request:', {
+        bookingId: selectedBooking.id,
+        phoneNumber: formattedPhone,
+        amount: remainingBalance
+      });
+      
+      // Call M-Pesa STK Push API - FIX: Send data in body, not as endpoint param
+      const response = await fetch('/api?endpoint=mpesa-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          endpoint: 'mpesa-payment',
           bookingId: selectedBooking.id,
           phoneNumber: formattedPhone,
           amount: remainingBalance,
         }),
       });
 
+      console.log('📱 M-Pesa Response Status:', response.status);
       const data = await response.json();
+      console.log('📱 M-Pesa Response Data:', data);
 
       if (data.success) {
         toast.success('📱 M-Pesa payment request sent! Check your phone to complete payment.');
@@ -145,11 +152,12 @@ export function MyBookings() {
           loadData();
         }, 10000); // Reload after 10 seconds
       } else {
+        console.error('❌ M-Pesa Error:', data);
         toast.error(data.message || 'Failed to initiate M-Pesa payment');
       }
     } catch (error) {
-      console.error('M-Pesa payment error:', error);
-      toast.error('Failed to process M-Pesa payment');
+      console.error('❌ M-Pesa payment error:', error);
+      toast.error('Failed to process M-Pesa payment. Check console for details.');
     } finally {
       setProcessingPayment(false);
     }
@@ -161,16 +169,41 @@ export function MyBookings() {
     try {
       setProcessingPayment(true);
       
+      console.log('🔍 Loading PayPal SDK...');
+      
       // Load PayPal SDK
       const PAYPAL_CLIENT_ID = 'YOUR_PAYPAL_CLIENT_ID_HERE'; // Replace with actual client ID
+      
+      // Validate Client ID
+      if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID === 'YOUR_PAYPAL_CLIENT_ID_HERE') {
+        toast.error('PayPal is not configured. Please contact support.');
+        setProcessingPayment(false);
+        setPaymentMethod(null);
+        return;
+      }
+      
       await loadPayPalScript(PAYPAL_CLIENT_ID);
+      
+      // Check if PayPal is loaded
+      if (!window.paypal) {
+        throw new Error('PayPal SDK failed to load');
+      }
+      
+      console.log('✅ PayPal SDK loaded successfully');
 
       const remainingBalance = getRemainingBalance(selectedBooking);
       const property = getProperty(selectedBooking.propertyId);
 
+      // Clear any existing PayPal buttons
+      const container = document.getElementById('paypal-button-container');
+      if (container) {
+        container.innerHTML = '';
+      }
+
       // Render PayPal buttons
       window.paypal.Buttons({
         createOrder: (data: any, actions: any) => {
+          console.log('🔍 Creating PayPal order...');
           return actions.order.create({
             purchase_units: [{
               amount: {
@@ -182,14 +215,15 @@ export function MyBookings() {
           });
         },
         onApprove: async (data: any, actions: any) => {
+          console.log('✅ PayPal payment approved, capturing order...');
           const order = await actions.order.capture();
+          console.log('✅ PayPal order captured:', order);
           
           // Save payment to database
-          const response = await fetch('/api', {
+          const response = await fetch('/api?endpoint=payments', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              endpoint: 'payments',
               bookingId: selectedBooking.id,
               customerId: selectedBooking.customerId,
               amount: remainingBalance,
@@ -200,22 +234,34 @@ export function MyBookings() {
           });
 
           if (response.ok) {
+            console.log('✅ Payment recorded in database');
             toast.success('Payment successful!');
             setShowPaymentDialog(false);
+            setPaymentMethod(null);
             loadData();
+          } else {
+            console.error('❌ Failed to record payment');
+            toast.error('Payment successful but failed to record. Please contact support.');
           }
         },
         onError: (err: any) => {
-          console.error('PayPal error:', err);
-          toast.error('PayPal payment failed');
+          console.error('❌ PayPal error:', err);
+          toast.error('PayPal payment failed. Please try again.');
         },
+        onCancel: () => {
+          console.log('⚠️ PayPal payment cancelled by user');
+          toast.info('Payment cancelled');
+        }
       }).render('#paypal-button-container');
       
+      console.log('✅ PayPal buttons rendered');
       setProcessingPayment(false);
     } catch (error) {
-      console.error('PayPal initialization error:', error);
-      toast.error('Failed to load PayPal. Please try again.');
+      console.error('❌ PayPal initialization error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to load PayPal: ${errorMessage}`);
       setProcessingPayment(false);
+      setPaymentMethod(null);
     }
   };
 
