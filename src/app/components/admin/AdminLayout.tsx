@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router';
-import { Building2, Home, Calendar, Users, CreditCard, Settings, LogOut, Menu, X, Mail } from 'lucide-react';
+import { Building2, Home, Calendar, Users, CreditCard, Settings, LogOut, Menu, X, Mail, Smartphone } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useEffect, useState } from 'react';
 import { OfflineBanner } from '../OfflineBanner';
@@ -56,6 +56,7 @@ export function AdminLayout() {
     { path: '/admin/bookings', label: 'Bookings', icon: Calendar },
     { path: '/admin/customers', label: 'Customers', icon: Users },
     { path: '/admin/payments', label: 'Payments', icon: CreditCard },
+    { path: '/admin/mpesa-transactions', label: 'M-Pesa Transactions', icon: Smartphone },
     { path: '/admin/settings', label: 'Settings', icon: Settings },
     { path: '/admin/email-templates', label: 'Email Templates', icon: Mail },
     { path: '/admin/email-diagnostics', label: 'Email Diagnostics', icon: Mail },

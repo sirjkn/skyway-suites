@@ -2088,7 +2088,41 @@ You can now use this SMTP configuration for automated notifications.
     }
 
     // ============================================
+    // M-PESA TRANSACTIONS LISTING
+    // ============================================
+    // Get All M-Pesa Transactions (Admin)
+    if (endpoint === 'mpesa-transactions' && req.method === 'GET') {
+      try {
+        const result = await query(`
+          SELECT 
+            mt.*,
+            b.property_id,
+            b.check_in,
+            b.check_out,
+            b.total_price,
+            b.status as booking_status,
+            p.name as property_name,
+            u.name as customer_name,
+            u.email as customer_email
+          FROM mpesa_transactions mt
+          LEFT JOIN bookings b ON mt.booking_id = b.id
+          LEFT JOIN properties p ON b.property_id = p.id
+          LEFT JOIN users u ON b.user_id = u.id
+          ORDER BY mt.created_at DESC
+        `);
+        
+        return res.status(200).json({
+          transactions: result.rows
+        });
+      } catch (error) {
+        console.error('Failed to fetch M-Pesa transactions:', error);
+        return res.status(500).json({ error: 'Failed to fetch M-Pesa transactions' });
+      }
+    }
+
+    // ============================================
     // REVIEWS ENDPOINTS
+    // ============================================
     // Get Payment Settings (for frontend)
     if (endpoint === 'get-payment-settings' && req.method === 'GET') {
       try {

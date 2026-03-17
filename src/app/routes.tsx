@@ -1,26 +1,9 @@
-import { createBrowserRouter, Outlet } from "react-router";
-import { AuthProvider } from "./context/AuthContext";
-import { Layout } from "./components/Layout";
-import { Home } from "./pages/Home";
-import { About } from "./pages/About";
-import { AllProperties } from "./pages/AllProperties";
-import { Contact } from "./pages/Contact";
-import { CreateAccount } from "./pages/CreateAccount";
-import { Login } from "./pages/Login";
-import { PropertyDetails } from "./pages/PropertyDetails";
-import { CustomerProfile } from "./pages/CustomerProfile";
-import { MyBookings } from "./pages/MyBookings";
-import { NotFound } from "./pages/NotFound";
-import { AdminLayout } from "./components/admin/AdminLayout";
-import { AdminProperties } from "./pages/admin/AdminProperties";
-import { AdminBookings } from "./pages/admin/AdminBookings";
-import { AdminCustomers } from "./pages/admin/AdminCustomers";
-import { AdminPayments } from "./pages/admin/AdminPayments";
 import { AdminSettings } from "./pages/admin/AdminSettings";
 import EmailDiagnostics from "./pages/admin/EmailDiagnostics";
 import DebugSettings from "./pages/admin/DebugSettings";
 import EmailTemplates from "./pages/admin/EmailTemplates";
 import { DatabaseMigration } from "./pages/admin/DatabaseMigration";
+import { MpesaTransactions } from "./pages/MpesaTransactions";
 import { MaintenanceWrapper } from "./components/MaintenanceWrapper";
 import { RealtimeIndicator } from "./components/RealtimeIndicator";
 import { DatabaseStatus } from "./components/DatabaseStatus";
@@ -75,6 +58,7 @@ export const router = createBrowserRouter([
           { path: "debug-settings", Component: DebugSettings, errorElement: <RouteError /> },
           { path: "email-templates", Component: EmailTemplates, errorElement: <RouteError /> },
           { path: "database-migration", Component: DatabaseMigration, errorElement: <RouteError /> },
+          { path: "mpesa-transactions", Component: MpesaTransactions, errorElement: <RouteError /> },
         ],
       },
       {

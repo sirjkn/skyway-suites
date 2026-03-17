@@ -94,6 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(mockUser);
         localStorage.setItem('token', mockToken);
         localStorage.setItem('user', JSON.stringify(mockUser));
+        
+        // Return user and token for redirect logic
         return { user: mockUser, token: mockToken };
       }
 
@@ -129,6 +131,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('user', JSON.stringify(data.user));
       // Mark that we have real users since we successfully authenticated
       setHasRealUsers(true);
+      
+      // Return user and token for redirect logic
       return { user: data.user, token: data.token };
     } catch (error) {
       console.error('Login error:', error);
