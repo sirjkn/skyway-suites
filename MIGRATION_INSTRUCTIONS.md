@@ -1,114 +1,85 @@
-# Database Migration Instructions - Merge Customers into Users
+# Database Migration Instructions
 
-## Overview
-This migration consolidates the `customers` table into the `users` table, simplifying the database structure. All customers will now be users with `role = 'customer'`.
+## Problem
+The categorized photos feature was not working because the database was missing the `categorized_photos` column in the `properties` table.
+
+## Solution
+We've created a database migration to add this column.
+
+## How to Run the Migration
+
+### Option 1: Using the Admin Panel (Recommended)
+1. Go to **Admin → Settings**
+2. Scroll to the "Database Connection" section
+3. Click the **"Run Migrations"** button
+4. Or navigate directly to: `http://your-domain.com/admin/database-migration`
+5. Click **"Run Migration"** button
+6. You should see a success message
+
+### Option 2: Direct API Call
+Visit this URL in your browser:
+```
+http://your-domain.com/api/migrate
+```
+
+You should see a JSON response:
+```json
+{
+  "success": true,
+  "message": "Migration completed successfully. The categorized_photos column has been added to the properties table."
+}
+```
+
+## After Running the Migration
+
+1. **Add New Property**: Go to Admin → Properties → Add Property
+2. **Upload Photos**: 
+   - Click on category tabs (Living Room, Bedroom, Kitchen, Dining, Amenities)
+   - Upload photos to each category
+   - You'll see a count badge showing how many photos are in each category
+3. **Save Property**: The categorized photos will now be saved correctly
+4. **View Property**: Visit the property details page to see photos with olive green category badges
 
 ## Changes Made
 
-### Backend API (`/api/index.ts`)
-- ✅ Updated signup endpoint to only create users (with phone field)
-- ✅ Customers endpoint now queries users table with `role = 'customer'`
-- ✅ Reviews endpoints now join with users table instead of customers
-- ✅ All customer operations now use users table
+### Backend Changes (/api/index.ts)
+1. ✅ Added `categorizedPhotos` to `transformProperty` function
+2. ✅ Added `categorized_photos` to INSERT statement (line 711-720)
+3. ✅ Added `categorized_photos` to UPDATE statement (line 655-658)
 
-### Frontend
-- ✅ Create account form now includes phone number field
-- ✅ Phone number is required during signup
-- ✅ AuthContext updated to pass phone to signup API
+### Frontend Changes (/src/app/lib/api.ts)
+1. ✅ Already sending `categorized_photos` to backend (line 253)
 
 ### Database Schema
-- ✅ Users table will have `phone` column added
-- ✅ Customers table will be dropped
-- ✅ All foreign keys (bookings, payments, reviews) will reference users.id
+1. ✅ Created migration endpoint at `/api/migrate.ts`
+2. ✅ Migration adds JSONB column `categorized_photos` with default empty object
 
-## Migration Steps
+### UI Changes
+1. ✅ Badge color changed to olive green (#6B7C3C)
+2. ✅ Added loading states to Add/Edit Property buttons
+3. ✅ Created admin migration page at `/admin/database-migration`
 
-### Step 1: Run the Migration Script
+## Troubleshooting
 
-**IMPORTANT:** Run this script in your Neon database SQL Editor:
+### If Photos Still Show "General"
+1. Make sure you ran the migration successfully
+2. Check the browser console (F12) when saving a property - you should see:
+   - `🔍 IMAGE CATEGORIES MAP:` - Shows category assignments
+   - `🔍 CATEGORIZED PHOTOS:` - Shows final structure
+3. If the console shows empty objects, the photos might not be assigned to categories during upload
 
-```sql
--- Copy and paste the contents of /MERGE_CUSTOMERS_TO_USERS.sql
-```
+### If Migration Fails
+1. Check that your database connection is working
+2. Verify the DATABASE_URL environment variable is set correctly
+3. The migration is safe to run multiple times (uses IF NOT EXISTS)
 
-This script will:
-1. Add `phone` column to users table
-2. Migrate existing customer data to users table
-3. Update all foreign key references (bookings, payments, reviews)
-4. Drop the customers table
-5. Create index on phone column
+## Testing
 
-### Step 2: Verify Migration Success
+1. Create a test property with photos in different categories
+2. Save and reload the page
+3. Check that photos display with correct category badges (olive green background)
+4. Open property details to verify the photo gallery shows categorized photos
 
-Run these verification queries in Neon:
+---
 
-```sql
--- Check all customers are now in users table
-SELECT COUNT(*) as total_customers FROM users WHERE role = 'customer';
-
--- Verify phone numbers were migrated
-SELECT COUNT(*) as users_with_phone FROM users WHERE phone IS NOT NULL AND role = 'customer';
-
--- Check bookings are properly linked
-SELECT COUNT(*) as booking_count FROM bookings b
-JOIN users u ON b.customer_id = u.id
-WHERE u.role = 'customer';
-
--- Verify customers table is dropped
-SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public' AND table_name = 'customers';
--- This should return 0 rows
-```
-
-### Step 3: Deploy Updated Code
-
-After running the migration script:
-1. Deploy the updated backend API to Vercel
-2. The frontend changes will automatically work with the new structure
-
-### Step 4: Test the System
-
-1. **Test New Account Creation:**
-   - Go to Create Account page
-   - Fill in all fields including phone number
-   - Submit and verify account is created
-   - Check database: `SELECT * FROM users WHERE role = 'customer' ORDER BY created_at DESC LIMIT 1;`
-
-2. **Test Existing Users:**
-   - Login with an existing customer account
-   - Verify booking functionality works
-   - Check that customer profile shows correctly
-
-3. **Test Admin Panel:**
-   - Go to Admin → Customers
-   - Verify customer list displays correctly
-   - Test editing a customer (name, email, phone)
-
-## Rollback Plan (If Needed)
-
-If you need to rollback, you must have a database backup. There is no automatic rollback for this migration.
-
-**Prevention:** Take a Neon database backup BEFORE running the migration:
-- In Neon Console → Select your database → Backups → Create Backup
-
-## Benefits of This Change
-
-1. **Simplified Schema:** One user table instead of two separate tables
-2. **Easier Authentication:** All users (customers and admins) in one place
-3. **Better Data Integrity:** No need to sync between users and customers
-4. **Cleaner Code:** Fewer database queries and joins
-5. **Consistent Role Management:** All users have roles (customer/admin)
-
-## Notes
-
-- All existing bookings, payments, and reviews will continue to work
-- Customer IDs remain the same (they're now user IDs)
-- Phone numbers are now required for new signups
-- Existing users who sign up before migration will have their phone numbers migrated if they exist in the old customers table
-
-## Support
-
-If you encounter any issues:
-1. Check the verification queries above
-2. Review the Neon database logs
-3. Check the Vercel function logs for API errors
+**Need Help?** Check the browser console for detailed logs when saving properties.

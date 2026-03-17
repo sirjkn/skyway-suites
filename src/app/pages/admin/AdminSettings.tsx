@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router';
 import { toast } from 'sonner';
-import { Save, Upload, X, Wrench, Mail, MessageCircle, Bell, Settings as SettingsIcon, Users as UsersIcon } from 'lucide-react';
+import { Save, Upload, X, Wrench, Mail, MessageCircle, Bell, Settings as SettingsIcon, Users as UsersIcon, Database } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
 import * as Switch from '@radix-ui/react-switch';
 import { Button } from '../../components/ui/button';
@@ -702,10 +703,18 @@ export function AdminSettings() {
                     <li>Update API endpoints in /src/app/lib/api.ts</li>
                   </ol>
                 </div>
-                <Button onClick={() => toast.success('Database connection updated!')}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Update Connection
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button onClick={() => toast.success('Database connection updated!')}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Update Connection
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link to="/admin/database-migration">
+                      <Database className="h-4 w-4 mr-2" />
+                      Run Migrations
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 

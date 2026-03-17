@@ -19,6 +19,7 @@ import { AdminSettings } from "./pages/admin/AdminSettings";
 import EmailDiagnostics from "./pages/admin/EmailDiagnostics";
 import DebugSettings from "./pages/admin/DebugSettings";
 import EmailTemplates from "./pages/admin/EmailTemplates";
+import { DatabaseMigration } from "./pages/admin/DatabaseMigration";
 import { MaintenanceWrapper } from "./components/MaintenanceWrapper";
 import { RealtimeIndicator } from "./components/RealtimeIndicator";
 import { DatabaseStatus } from "./components/DatabaseStatus";
@@ -71,6 +72,7 @@ export const router = createBrowserRouter([
           { path: "email-diagnostics", Component: EmailDiagnostics, errorElement: <RouteError /> },
           { path: "debug-settings", Component: DebugSettings, errorElement: <RouteError /> },
           { path: "email-templates", Component: EmailTemplates, errorElement: <RouteError /> },
+          { path: "database-migration", Component: DatabaseMigration, errorElement: <RouteError /> },
         ],
       },
       {

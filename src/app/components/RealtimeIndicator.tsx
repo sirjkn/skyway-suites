@@ -15,6 +15,7 @@ export function RealtimeIndicator() {
   const [isConnected, setIsConnected] = useState<boolean | null>(null); // null = checking
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [isVisible, setIsVisible] = useState<boolean>(true); // Control visibility
   const inPreview = isPreviewMode();
   const { user } = useAuth();
 
@@ -58,6 +59,18 @@ export function RealtimeIndicator() {
         setErrorMessage(connected ? '' : (data.error || data.message || 'Database offline'));
         setLastSync(new Date());
         
+        // Show indicator when connection status changes
+        setIsVisible(true);
+        
+        // Auto-hide after 3 seconds if connected
+        if (connected) {
+          setTimeout(() => {
+            if (isMounted) {
+              setIsVisible(false);
+            }
+          }, 3000);
+        }
+        
         // Log detailed status for debugging
         if (!connected) {
           console.error('🔴 Neon DB Offline:', {
@@ -78,6 +91,7 @@ export function RealtimeIndicator() {
         if (error instanceof Error && error.name !== 'AbortError') {
           setIsConnected(false);
           setErrorMessage('API not deployed');
+          setIsVisible(true); // Show when there's an error
           // Silently handle - no console warnings needed in preview
         }
       }
@@ -130,8 +144,16 @@ export function RealtimeIndicator() {
     );
   }
 
+  // Don't render if not visible (after 3 second auto-hide)
+  if (!isVisible) {
+    return null;
+  }
+
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div 
+      className="fixed bottom-6 right-6 z-50 transition-opacity duration-500"
+      style={{ opacity: isVisible ? 1 : 0 }}
+    >
       <Badge
         variant={isConnected ? 'default' : 'destructive'}
         className="flex items-center gap-2 px-4 py-2 shadow-xl border-2"

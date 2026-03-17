@@ -76,6 +76,7 @@ function transformProperty(row: any) {
     category: row.category,
     image: row.image,
     photos: row.photos || [],
+    categorizedPhotos: row.categorized_photos || {},
     amenities: row.amenities || [],
     available: row.available,
     averageRating: row.average_rating ? parseFloat(row.average_rating) : 0,
@@ -569,6 +570,34 @@ You can now use this SMTP configuration for automated notifications.
     }
 
     // ============================================
+    // DATABASE MIGRATION ENDPOINT
+    // ============================================
+    if (endpoint === 'migrate') {
+      try {
+        console.log('🔄 Starting database migration...');
+        
+        // Add categorized_photos column if it doesn't exist
+        await query(`
+          ALTER TABLE properties 
+          ADD COLUMN IF NOT EXISTS categorized_photos JSONB DEFAULT '{}'::jsonb
+        `);
+        
+        console.log('✅ Migration completed successfully');
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: 'Migration completed successfully. The categorized_photos column has been added to the properties table.' 
+        });
+      } catch (error) {
+        console.error('❌ Migration failed:', error);
+        return res.status(500).json({ 
+          success: false, 
+          error: error instanceof Error ? error.message : String(error) 
+        });
+      }
+    }
+
+    // ============================================
     // PROPERTIES ENDPOINTS
     // ============================================
     if (endpoint === 'properties') {
@@ -655,6 +684,10 @@ You can now use this SMTP configuration for automated notifications.
             updates.push(`photos = $${paramIndex++}`);
             values.push(fields.photos);
           }
+          if (fields.categorized_photos !== undefined) {
+            updates.push(`categorized_photos = $${paramIndex++}`);
+            values.push(fields.categorized_photos);
+          }
           if (fields.amenities !== undefined) {
             updates.push(`amenities = $${paramIndex++}`);
             values.push(fields.amenities);
@@ -707,14 +740,14 @@ You can now use this SMTP configuration for automated notifications.
       }
 
       if (req.method === 'POST') {
-        const { title, description, price, location, bedrooms, bathrooms, guests, category, image, photos, amenities,
+        const { title, description, price, location, bedrooms, bathrooms, guests, category, image, photos, categorized_photos, amenities,
           ical_export_url, airbnb_import_url, calendar_sync_enabled } = req.body;
         const result = await query(
           `INSERT INTO properties 
-           (title, description, price, location, bedrooms, bathrooms, guests, category, image, photos, amenities,
+           (title, description, price, location, bedrooms, bathrooms, guests, category, image, photos, categorized_photos, amenities,
             ical_export_url, airbnb_import_url, calendar_sync_enabled) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
-          [title, description, price, location, bedrooms, bathrooms, guests, category, image, photos, amenities,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+          [title, description, price, location, bedrooms, bathrooms, guests, category, image, photos, categorized_photos, amenities,
            ical_export_url, airbnb_import_url, calendar_sync_enabled]
         );
         return res.status(200).json(transformProperty(result.rows[0]));
