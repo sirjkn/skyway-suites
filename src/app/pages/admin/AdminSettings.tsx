@@ -24,6 +24,7 @@ import { UsersManagement } from '../../components/UsersManagement';
 export function AdminSettings() {
   const [activeTab, setActiveTab] = useState('general');
   const [heroBackgroundUrl, setHeroBackgroundUrl] = useState('https://res.cloudinary.com/dc5d5zfos/image/upload/v1773134775/skyway-suites/yndkhqpgcxknpro3tjjd.webp');
+  const [heroImages, setHeroImages] = useState<string[]>([]);
   const [isLoadingHero, setIsLoadingHero] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadPreview, setUploadPreview] = useState('');
@@ -111,6 +112,9 @@ export function AdminSettings() {
       const settings = await getHeroSettings();
       if (settings?.backgroundImage) {
         setHeroBackgroundUrl(settings.backgroundImage);
+      }
+      if (settings?.backgroundImages) {
+        setHeroImages(settings.backgroundImages);
       }
     } catch (error) {
       console.error('Failed to load hero settings');

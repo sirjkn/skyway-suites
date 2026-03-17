@@ -10,15 +10,32 @@ import { OrganizationStructuredData, BreadcrumbStructuredData } from '../compone
 export function Home() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [heroBackground, setHeroBackground] = useState('https://res.cloudinary.com/dc5d5zfos/image/upload/v1773130653/skyway-suites/teaska4iahwhiwottlpg.webp');
+  const [heroImages, setHeroImages] = useState<string[]>([]);
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
   useEffect(() => {
     getProperties().then((data) => setProperties(data.slice(0, 6)));
     getHeroSettings().then((settings) => {
-      if (settings?.backgroundImage) {
+      if (settings?.backgroundImages && settings.backgroundImages.length > 0) {
+        setHeroImages(settings.backgroundImages);
+        setHeroBackground(settings.backgroundImages[0]);
+      } else if (settings?.backgroundImage) {
         setHeroBackground(settings.backgroundImage);
+        setHeroImages([settings.backgroundImage]);
       }
     });
   }, []);
+  
+  // Auto-advance hero carousel every 5 seconds
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentHeroIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
 
   return (
     <div>
@@ -40,13 +57,19 @@ export function Home() {
       <BreadcrumbStructuredData items={[{ name: 'Home', url: '/' }]} />
       
       {/* Hero Section */}
-      <section
-        className="relative h-[500px] bg-cover bg-center"
-        style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('${heroBackground}')`,
-        }}
-      >
-        <div className="absolute inset-0 flex items-end justify-center pb-12">
+      <section className="relative h-[500px] overflow-hidden">
+        {/* Hero Image Carousel */}
+        <div className="absolute inset-0 transition-opacity duration-1000">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: `url('${heroImages.length > 0 ? heroImages[currentHeroIndex] : heroBackground}')`,
+            }}
+          />
+        </div>
+        
+        {/* Text Overlay */}
+        <div className="absolute inset-0 flex items-end justify-center pb-12 bg-gradient-to-t from-black/30 via-transparent to-transparent">
           <div className="text-center text-white max-w-2xl px-4">
             <h1 className="text-2xl md:text-3xl mb-3">
               Find Your Perfect Stay !
@@ -56,6 +79,24 @@ export function Home() {
             </p>
           </div>
         </div>
+        
+        {/* Carousel Navigation Dots */}
+        {heroImages.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+            {heroImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentHeroIndex(index)}
+                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                  index === currentHeroIndex
+                    ? 'bg-white w-8'
+                    : 'bg-white/50 hover:bg-white/75'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Featured Properties */}
