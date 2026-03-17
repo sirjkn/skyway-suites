@@ -2018,6 +2018,12 @@ You can now use this SMTP configuration for automated notifications.
             console.error('❌ M-Pesa API error (parsed):', JSON.stringify(errorData, null, 2));
           } catch (e) {
             console.error('❌ Token request failed (raw):', tokenResponse.status, responseText);
+            // If JSON parsing failed, include the raw response
+            errorMessage = responseText || tokenResponse.statusText;
+            errorDetails = { 
+              rawResponse: responseText,
+              parseError: 'Response is not valid JSON'
+            };
           }
           
           // Return detailed error to frontend
