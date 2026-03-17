@@ -2,14 +2,52 @@ import { useState } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-interface PhotoGalleryProps {
-  photos: string[];
+interface PhotoWithCategory {
+  url: string;
+  category: string;
 }
 
-export function PhotoGallery({ photos }: PhotoGalleryProps) {
+interface PhotoGalleryProps {
+  photos?: string[];
+  categorizedPhotos?: {
+    livingRoom?: string[];
+    bedroom?: string[];
+    kitchen?: string[];
+    dining?: string[];
+    amenities?: string[];
+  };
+}
+
+export function PhotoGallery({ photos, categorizedPhotos }: PhotoGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  if (!photos || photos.length === 0) {
+  // Build array of photos with categories
+  const allPhotos: PhotoWithCategory[] = [];
+  
+  if (categorizedPhotos) {
+    if (categorizedPhotos.livingRoom) {
+      categorizedPhotos.livingRoom.forEach(url => allPhotos.push({ url, category: 'Living Room' }));
+    }
+    if (categorizedPhotos.bedroom) {
+      categorizedPhotos.bedroom.forEach(url => allPhotos.push({ url, category: 'Bedroom' }));
+    }
+    if (categorizedPhotos.kitchen) {
+      categorizedPhotos.kitchen.forEach(url => allPhotos.push({ url, category: 'Kitchen' }));
+    }
+    if (categorizedPhotos.dining) {
+      categorizedPhotos.dining.forEach(url => allPhotos.push({ url, category: 'Dining' }));
+    }
+    if (categorizedPhotos.amenities) {
+      categorizedPhotos.amenities.forEach(url => allPhotos.push({ url, category: 'Amenities' }));
+    }
+  }
+  
+  // Fallback to uncategorized photos
+  if (allPhotos.length === 0 && photos) {
+    photos.forEach(url => allPhotos.push({ url, category: 'General' }));
+  }
+
+  if (allPhotos.length === 0) {
     return null;
   }
 
@@ -25,13 +63,13 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
 
   const goToNext = () => {
     if (selectedIndex !== null) {
-      setSelectedIndex((selectedIndex + 1) % photos.length);
+      setSelectedIndex((selectedIndex + 1) % allPhotos.length);
     }
   };
 
   const goToPrev = () => {
     if (selectedIndex !== null) {
-      setSelectedIndex((selectedIndex - 1 + photos.length) % photos.length);
+      setSelectedIndex((selectedIndex - 1 + allPhotos.length) % allPhotos.length);
     }
   };
 
@@ -42,28 +80,32 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
         <motion.div
           className="flex gap-4"
           animate={{
-            x: [0, -photos.length * 280],
+            x: [0, -allPhotos.length * 280],
           }}
           transition={{
             x: {
               repeat: Infinity,
               repeatType: 'loop',
-              duration: photos.length * 5,
+              duration: allPhotos.length * 5,
               ease: 'linear',
             },
           }}
         >
-          {[...photos, ...photos].map((photo, index) => (
+          {[...allPhotos, ...allPhotos].map((photo, index) => (
             <div
-              key={`${photo}-${index}`}
-              className="flex-shrink-0 w-64 h-48 cursor-pointer rounded-lg overflow-hidden"
-              onClick={() => openGallery(index % photos.length)}
+              key={`${photo.url}-${index}`}
+              className="flex-shrink-0 w-64 h-48 cursor-pointer rounded-lg overflow-hidden relative group"
+              onClick={() => openGallery(index % allPhotos.length)}
             >
               <img
-                src={photo}
-                alt={`Gallery photo ${(index % photos.length) + 1}`}
+                src={photo.url}
+                alt={`Gallery photo ${(index % allPhotos.length) + 1}`}
                 className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
               />
+              {/* Category Badge */}
+              <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
+                {photo.category}
+              </div>
             </div>
           ))}
         </motion.div>
@@ -83,7 +125,7 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
             <div
               className="absolute inset-0 backdrop-blur-xl"
               style={{
-                backgroundImage: `url(${photos[selectedIndex]})`,
+                backgroundImage: `url(${allPhotos[selectedIndex].url})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 filter: 'blur(20px) brightness(0.5)',
@@ -101,7 +143,7 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
               </button>
 
               {/* Previous Button */}
-              {photos.length > 1 && (
+              {allPhotos.length > 1 && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -120,14 +162,19 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                src={photos[selectedIndex]}
+                src={allPhotos[selectedIndex].url}
                 alt={`Gallery photo ${selectedIndex + 1}`}
                 className="max-w-[90%] max-h-[90%] object-contain rounded-lg shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
               />
 
+              {/* Category Badge on Fullscreen */}
+              <div className="absolute top-20 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md text-white border border-white/20">
+                {allPhotos[selectedIndex].category}
+              </div>
+
               {/* Next Button */}
-              {photos.length > 1 && (
+              {allPhotos.length > 1 && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -141,7 +188,7 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
 
               {/* Counter */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md text-white">
-                {selectedIndex + 1} / {photos.length}
+                {selectedIndex + 1} / {allPhotos.length}
               </div>
             </div>
           </motion.div>

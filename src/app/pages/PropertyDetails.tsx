@@ -358,10 +358,19 @@ export function PropertyDetails() {
               </div>
 
               {/* Photo Gallery */}
-              {property.photos && property.photos.length > 0 && (
+              {((property.categorizedPhotos && 
+                (property.categorizedPhotos.livingRoom?.length || 
+                 property.categorizedPhotos.bedroom?.length || 
+                 property.categorizedPhotos.kitchen?.length || 
+                 property.categorizedPhotos.dining?.length || 
+                 property.categorizedPhotos.amenities?.length)) || 
+                (property.photos && property.photos.length > 0)) && (
                 <div className="mt-8">
                   <h2 className="text-2xl mb-4">Property Photos</h2>
-                  <PhotoGallery photos={property.photos} />
+                  <PhotoGallery 
+                    photos={property.photos} 
+                    categorizedPhotos={property.categorizedPhotos}
+                  />
                 </div>
               )}
             </div>
