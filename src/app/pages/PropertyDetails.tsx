@@ -704,8 +704,25 @@ export function PropertyDetails() {
                     variant="outline"
                     className="w-full border-green-600 text-green-600 hover:bg-green-50"
                     onClick={() => {
-                      const message = `Hi! I'm interested in ${property.title}${checkIn && checkOut ? `. Dates: ${formatDateOnly(checkIn)} to ${formatDateOnly(checkOut)}` : ''}${guests ? `. Guests: ${guests}` : ''}. Can you provide more information?`;
-                      const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/\+/g, '')}?text=${encodeURIComponent(message)}`;
+                      // Validate that dates and guests are selected
+                      if (!checkIn || !checkOut) {
+                        toast.error('Please select check-in and check-out dates first', {
+                          duration: 3000,
+                        });
+                        return;
+                      }
+                      
+                      if (!guests || parseInt(guests) < 1) {
+                        toast.error('Please select number of guests', {
+                          duration: 3000,
+                        });
+                        return;
+                      }
+                      
+                      // Build the enquiry message with all details
+                      const message = `Hi! I'm interested in *${property.title}*\n\n📅 Check-in: ${formatDateOnly(checkIn)}\n📅 Check-out: ${formatDateOnly(checkOut)}\n👥 Guests: ${guests}\n\nCan you provide more information and confirm availability?`;
+                      
+                      const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[\s\+\-\(\)]/g, '')}?text=${encodeURIComponent(message)}`;
                       window.open(whatsappUrl, '_blank');
                     }}
                   >
