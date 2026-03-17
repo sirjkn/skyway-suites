@@ -1719,30 +1719,83 @@ You can now use this SMTP configuration for automated notifications.
       
       console.log('🔍 M-Pesa Payment Request:', { bookingId, phoneNumber, amount });
       
-      // IMPORTANT: Replace these with your actual Safaricom Daraja API credentials
-      const MPESA_CONSUMER_KEY = 'YOUR_MPESA_CONSUMER_KEY';
-      const MPESA_CONSUMER_SECRET = 'YOUR_MPESA_CONSUMER_SECRET';
-      const MPESA_SHORTCODE = 'YOUR_BUSINESS_SHORTCODE'; // e.g., 174379
-      const MPESA_PASSKEY = 'YOUR_MPESA_PASSKEY';
-      const MPESA_CALLBACK_URL = 'https://your-domain.com/api?endpoint=mpesa-callback';
-      
       try {
+        // Get M-Pesa settings from database
+        const settingsResult = await query(
+          `SELECT key, value FROM settings WHERE category = 'notifications' AND key IN ($1, $2, $3, $4, $5, $6)`,
+          ['mpesa_consumer_key', 'mpesa_consumer_secret', 'mpesa_shortcode', 'mpesa_passkey', 'mpesa_callback_url', 'mpesa_environment']
+        );
+        
+        console.log('🔍 Settings fetched:', settingsResult.rows.length, 'rows');
+        
+        const settings: any = {};
+        settingsResult.rows.forEach((row: any) => {
+          const camelKey = row.key.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase());
+          settings[camelKey] = row.value;
+        });
+        
+        console.log('🔍 M-Pesa Settings loaded:', Object.keys(settings));
+        
+        const MPESA_CONSUMER_KEY = settings.mpesaConsumerKey || '';
+        const MPESA_CONSUMER_SECRET = settings.mpesaConsumerSecret || '';
+        const MPESA_SHORTCODE = settings.mpesaShortcode || '';
+        const MPESA_PASSKEY = settings.mpesaPasskey || '';
+        const MPESA_CALLBACK_URL = settings.mpesaCallbackUrl || '';
+        const mpesaEnvironment = settings.mpesaEnvironment || 'sandbox';
+        
+        // Validate credentials exist
+        if (!MPESA_CONSUMER_KEY || !MPESA_CONSUMER_SECRET || !MPESA_SHORTCODE || !MPESA_PASSKEY) {
+          console.error('❌ M-Pesa credentials missing:', {
+            hasKey: !!MPESA_CONSUMER_KEY,
+            hasSecret: !!MPESA_CONSUMER_SECRET,
+            hasShortcode: !!MPESA_SHORTCODE,
+            hasPasskey: !!MPESA_PASSKEY
+          });
+          return res.status(400).json({
+            success: false,
+            message: 'M-Pesa is not configured. Please configure in Admin → Settings → Notifications → Payment Settings.'
+          });
+        }
+        
+        console.log('✅ M-Pesa credentials validated, environment:', mpesaEnvironment);
+        
+        // Use correct URLs based on environment
+        const tokenUrl = mpesaEnvironment === 'live'
+          ? 'https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
+          : 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
+          
+        const stkUrl = mpesaEnvironment === 'live'
+          ? 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
+          : 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
+        
         // Step 1: Get access token
+        console.log('🔍 Getting M-Pesa access token from:', tokenUrl);
         const auth = Buffer.from(`${MPESA_CONSUMER_KEY}:${MPESA_CONSUMER_SECRET}`).toString('base64');
-        const tokenResponse = await fetch('https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials', {
+        const tokenResponse = await fetch(tokenUrl, {
           headers: {
             'Authorization': `Basic ${auth}`
           }
         });
         const tokenData = await tokenResponse.json();
+        
+        if (!tokenData.access_token) {
+          console.error('❌ Failed to get M-Pesa token:', tokenData);
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid M-Pesa credentials. Please check your Consumer Key and Secret.'
+          });
+        }
+        
         const accessToken = tokenData.access_token;
+        console.log('✅ M-Pesa access token obtained');
         
         // Step 2: Generate timestamp and password
         const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
         const password = Buffer.from(`${MPESA_SHORTCODE}${MPESA_PASSKEY}${timestamp}`).toString('base64');
         
         // Step 3: Initiate STK Push
-        const stkResponse = await fetch('https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest', {
+        console.log('🔍 Initiating STK Push to:', stkUrl);
+        const stkResponse = await fetch(stkUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -1757,7 +1810,7 @@ You can now use this SMTP configuration for automated notifications.
             PartyA: phoneNumber,
             PartyB: MPESA_SHORTCODE,
             PhoneNumber: phoneNumber,
-            CallBackURL: MPESA_CALLBACK_URL,
+            CallBackURL: MPESA_CALLBACK_URL || `https://${req.headers.host}/api?endpoint=mpesa-callback`,
             AccountReference: `BOOKING-${bookingId.slice(0, 8)}`,
             TransactionDesc: `Payment for booking ${bookingId.slice(0, 8)}`
           })
@@ -1779,16 +1832,17 @@ You can now use this SMTP configuration for automated notifications.
             checkoutRequestId: stkData.CheckoutRequestID
           });
         } else {
+          console.error('❌ M-Pesa STK Push failed:', stkData);
           return res.status(400).json({ 
             success: false, 
-            message: stkData.ResponseDescription || 'Failed to initiate M-Pesa payment'
+            message: stkData.ResponseDescription || stkData.errorMessage || 'Failed to initiate M-Pesa payment'
           });
         }
       } catch (error) {
         console.error('❌ M-Pesa Error:', error);
         return res.status(500).json({ 
           success: false, 
-          message: 'M-Pesa service temporarily unavailable'
+          message: 'M-Pesa service temporarily unavailable. Please check your settings.'
         });
       }
     }
@@ -1864,6 +1918,123 @@ You can now use this SMTP configuration for automated notifications.
 
     // ============================================
     // REVIEWS ENDPOINTS
+    // Get Payment Settings (for frontend)
+    if (endpoint === 'get-payment-settings' && req.method === 'GET') {
+      try {
+        const settingsResult = await query(
+          `SELECT key, value FROM settings WHERE category = 'notifications' AND key IN ($1, $2, $3, $4)`,
+          ['paypal_client_id', 'paypal_environment', 'mpesa_environment', 'mpesa_callback_url']
+        );
+        
+        const settings: any = {};
+        settingsResult.rows.forEach((row: any) => {
+          const camelKey = row.key.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase());
+          settings[camelKey] = row.value;
+        });
+        
+        // Don't send secrets to frontend
+        return res.status(200).json({
+          paypalClientId: settings.paypalClientId || '',
+          paypalEnvironment: settings.paypalEnvironment || 'sandbox',
+          mpesaEnvironment: settings.mpesaEnvironment || 'sandbox',
+          mpesaCallbackUrl: settings.mpesaCallbackUrl || '',
+        });
+      } catch (error) {
+        console.error('Failed to get payment settings:', error);
+        return res.status(500).json({ error: 'Failed to load payment settings' });
+      }
+    }
+
+    // Test M-Pesa
+    if (endpoint === 'test-mpesa' && req.method === 'POST') {
+      try {
+        const { phoneNumber, amount } = req.body;
+        
+        // Load settings
+        const settingsResult = await query(
+          `SELECT key, value FROM settings WHERE category = 'notifications' AND key LIKE 'mpesa%'`,
+          []
+        );
+        
+        const settings: any = {};
+        settingsResult.rows.forEach((row: any) => {
+          const camelKey = row.key.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase());
+          settings[camelKey] = row.value;
+        });
+        
+        // Validate
+        if (!settings.mpesaConsumerKey || !settings.mpesaConsumerSecret) {
+          return res.status(400).json({
+            success: false,
+            message: 'M-Pesa credentials not configured'
+          });
+        }
+        
+        // Try to get access token
+        const auth = Buffer.from(`${settings.mpesaConsumerKey}:${settings.mpesaConsumerSecret}`).toString('base64');
+        const tokenUrl = settings.mpesaEnvironment === 'live'
+          ? 'https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
+          : 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
+          
+        const tokenResponse = await fetch(tokenUrl, {
+          headers: { 'Authorization': `Basic ${auth}` }
+        });
+        
+        const tokenData = await tokenResponse.json();
+        
+        if (tokenData.access_token) {
+          return res.status(200).json({
+            success: true,
+            message: `M-Pesa credentials validated successfully! (${settings.mpesaEnvironment || 'sandbox'} mode)`
+          });
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: tokenData.error_description || 'Invalid M-Pesa credentials'
+          });
+        }
+      } catch (error: any) {
+        console.error('Test M-Pesa error:', error);
+        return res.status(500).json({
+          success: false,
+          message: error.message || 'Failed to connect to M-Pesa API'
+        });
+      }
+    }
+
+    // Test PayPal
+    if (endpoint === 'test-paypal' && req.method === 'POST') {
+      try {
+        const { clientId, environment } = req.body;
+        
+        if (!clientId) {
+          return res.status(400).json({
+            success: false,
+            message: 'PayPal Client ID not provided'
+          });
+        }
+        
+        // Simple validation (Client ID format check)
+        if (clientId.startsWith('A') && clientId.length > 50) {
+          return res.status(200).json({
+            success: true,
+            message: `PayPal Client ID validated (${environment || 'sandbox'} mode)`
+          });
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid PayPal Client ID format'
+          });
+        }
+      } catch (error: any) {
+        console.error('Test PayPal error:', error);
+        return res.status(500).json({
+          success: false,
+          message: error.message || 'Failed to validate PayPal'
+        });
+      }
+    }
+
     // ============================================
     if (endpoint === 'reviews') {
       const { propertyId, bookingId } = req.query;

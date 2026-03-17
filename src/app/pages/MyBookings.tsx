@@ -169,19 +169,26 @@ export function MyBookings() {
     try {
       setProcessingPayment(true);
       
-      console.log('🔍 Loading PayPal SDK...');
+      console.log('🔍 Loading PayPal configuration...');
       
-      // Load PayPal SDK
-      const PAYPAL_CLIENT_ID = 'YOUR_PAYPAL_CLIENT_ID_HERE'; // Replace with actual client ID
+      // Fetch PayPal settings from API
+      const settingsResponse = await fetch('/api?endpoint=get-payment-settings');
+      const settings = await settingsResponse.json();
+      
+      const PAYPAL_CLIENT_ID = settings.paypalClientId || '';
+      const paypalEnvironment = settings.paypalEnvironment || 'sandbox';
       
       // Validate Client ID
-      if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID === 'YOUR_PAYPAL_CLIENT_ID_HERE') {
+      if (!PAYPAL_CLIENT_ID) {
         toast.error('PayPal is not configured. Please contact support.');
         setProcessingPayment(false);
         setPaymentMethod(null);
         return;
       }
       
+      console.log(`✅ PayPal Client ID loaded (${paypalEnvironment} mode)`);
+      
+      // Load PayPal SDK
       await loadPayPalScript(PAYPAL_CLIENT_ID);
       
       // Check if PayPal is loaded

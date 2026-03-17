@@ -508,6 +508,78 @@ export function AdminSettings() {
     }
   };
 
+  const handleTestMpesa = async () => {
+    if (!mpesaTestPhone) {
+      toast.error('Please enter a test phone number');
+      return;
+    }
+    
+    setTestingMpesa(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}?endpoint=test-mpesa`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          phoneNumber: mpesaTestPhone,
+          amount: 1,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success('✅ M-Pesa credentials validated successfully!');
+      } else {
+        toast.error(`❌ M-Pesa test failed: ${data.message}`);
+      }
+    } catch (error) {
+      console.error('M-Pesa test error:', error);
+      toast.error('❌ M-Pesa test failed. Check credentials and try again.');
+    } finally {
+      setTestingMpesa(false);
+    }
+  };
+
+  const handleTestPayPal = async () => {
+    if (!paypalClientId) {
+      toast.error('Please enter PayPal Client ID first');
+      return;
+    }
+    
+    setTestingPaypal(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}?endpoint=test-paypal`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          clientId: paypalClientId,
+          environment: paypalEnvironment,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success('✅ PayPal credentials validated successfully!');
+      } else {
+        toast.error(`❌ PayPal validation failed: ${data.message}`);
+      }
+    } catch (error) {
+      console.error('PayPal test error:', error);
+      toast.error('❌ PayPal test failed. Check credentials and try again.');
+    } finally {
+      setTestingPaypal(false);
+    }
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -1353,12 +1425,28 @@ export function AdminSettings() {
                   </Switch.Root>
                 </div>
                 <div>
-                  <label className="block text-sm mb-2 font-medium">Mpesa Test Phone</label>
-                  <Input 
-                    value={mpesaTestPhone}
-                    onChange={(e) => setMpesaTestPhone(e.target.value)}
-                    placeholder="Your Mpesa Test Phone"
-                  />
+                  <label className="block text-sm mb-2 font-medium">M-Pesa Test Phone (for validation)</label>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      value={mpesaTestPhone}
+                      onChange={(e) => setMpesaTestPhone(e.target.value)}
+                      placeholder="254712345678"
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={handleTestMpesa}
+                      size="sm"
+                      disabled={testingMpesa}
+                      variant="outline"
+                      type="button"
+                    >
+                      <Smartphone className="h-4 w-4 mr-2" />
+                      {testingMpesa ? 'Testing...' : 'Test M-Pesa'}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Tests M-Pesa credentials by validating with Safaricom API
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm mb-2 font-medium">Paypal Client ID</label>
@@ -1389,20 +1477,21 @@ export function AdminSettings() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm mb-2 font-medium">Testing Paypal</label>
-                  <Switch.Root
-                    checked={testingPaypal}
-                    onCheckedChange={setTestingPaypal}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#6B7C3C] focus:ring-offset-2 ${
-                      testingPaypal ? 'bg-[#6B7C3C]' : 'bg-gray-200'
-                    }`}
+                  <label className="block text-sm mb-2 font-medium">Test PayPal Credentials</label>
+                  <Button
+                    onClick={handleTestPayPal}
+                    size="sm"
+                    disabled={testingPaypal}
+                    variant="outline"
+                    type="button"
+                    className="w-full"
                   >
-                    <Switch.Thumb
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                        testingPaypal ? 'translate-x-5' : 'translate-x-0'
-                      }`}
-                    />
-                  </Switch.Root>
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    {testingPaypal ? 'Validating...' : 'Validate PayPal'}
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Validates PayPal Client ID format
+                  </p>
                 </div>
                 <div className="p-3 bg-blue-50 rounded-md text-xs">
                   <p className="mb-1.5"><strong>Setup Instructions:</strong></p>
