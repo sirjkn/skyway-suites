@@ -9,6 +9,7 @@ import { CreateAccount } from "./pages/CreateAccount";
 import { Login } from "./pages/Login";
 import { PropertyDetails } from "./pages/PropertyDetails";
 import { CustomerProfile } from "./pages/CustomerProfile";
+import { MyBookings } from "./pages/MyBookings";
 import { NotFound } from "./pages/NotFound";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminProperties } from "./pages/admin/AdminProperties";
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
           { path: "create-account", Component: CreateAccount, errorElement: <RouteError /> },
           { path: "login", Component: Login, errorElement: <RouteError /> },
           { path: "profile", Component: CustomerProfile, errorElement: <RouteError /> },
+          { path: "my-bookings", Component: MyBookings, errorElement: <RouteError /> },
         ],
       },
       {

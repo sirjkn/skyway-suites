@@ -1712,6 +1712,157 @@ You can now use this SMTP configuration for automated notifications.
     }
 
     // ============================================
+    // M-PESA PAYMENT ENDPOINTS
+    // ============================================
+    if (endpoint === 'mpesa-payment' && req.method === 'POST') {
+      const { bookingId, phoneNumber, amount } = req.body;
+      
+      console.log('🔍 M-Pesa Payment Request:', { bookingId, phoneNumber, amount });
+      
+      // IMPORTANT: Replace these with your actual Safaricom Daraja API credentials
+      const MPESA_CONSUMER_KEY = 'YOUR_MPESA_CONSUMER_KEY';
+      const MPESA_CONSUMER_SECRET = 'YOUR_MPESA_CONSUMER_SECRET';
+      const MPESA_SHORTCODE = 'YOUR_BUSINESS_SHORTCODE'; // e.g., 174379
+      const MPESA_PASSKEY = 'YOUR_MPESA_PASSKEY';
+      const MPESA_CALLBACK_URL = 'https://your-domain.com/api?endpoint=mpesa-callback';
+      
+      try {
+        // Step 1: Get access token
+        const auth = Buffer.from(`${MPESA_CONSUMER_KEY}:${MPESA_CONSUMER_SECRET}`).toString('base64');
+        const tokenResponse = await fetch('https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials', {
+          headers: {
+            'Authorization': `Basic ${auth}`
+          }
+        });
+        const tokenData = await tokenResponse.json();
+        const accessToken = tokenData.access_token;
+        
+        // Step 2: Generate timestamp and password
+        const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
+        const password = Buffer.from(`${MPESA_SHORTCODE}${MPESA_PASSKEY}${timestamp}`).toString('base64');
+        
+        // Step 3: Initiate STK Push
+        const stkResponse = await fetch('https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            BusinessShortCode: MPESA_SHORTCODE,
+            Password: password,
+            Timestamp: timestamp,
+            TransactionType: 'CustomerPayBillOnline',
+            Amount: Math.round(amount),
+            PartyA: phoneNumber,
+            PartyB: MPESA_SHORTCODE,
+            PhoneNumber: phoneNumber,
+            CallBackURL: MPESA_CALLBACK_URL,
+            AccountReference: `BOOKING-${bookingId.slice(0, 8)}`,
+            TransactionDesc: `Payment for booking ${bookingId.slice(0, 8)}`
+          })
+        });
+        
+        const stkData = await stkResponse.json();
+        console.log('✅ M-Pesa STK Response:', stkData);
+        
+        if (stkData.ResponseCode === '0') {
+          // Store the checkout request ID for later verification
+          await query(
+            'INSERT INTO mpesa_transactions (checkout_request_id, booking_id, phone_number, amount, status) VALUES ($1, $2, $3, $4, $5)',
+            [stkData.CheckoutRequestID, bookingId, phoneNumber, amount, 'pending']
+          );
+          
+          return res.status(200).json({ 
+            success: true, 
+            message: 'Payment request sent to your phone',
+            checkoutRequestId: stkData.CheckoutRequestID
+          });
+        } else {
+          return res.status(400).json({ 
+            success: false, 
+            message: stkData.ResponseDescription || 'Failed to initiate M-Pesa payment'
+          });
+        }
+      } catch (error) {
+        console.error('❌ M-Pesa Error:', error);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'M-Pesa service temporarily unavailable'
+        });
+      }
+    }
+    
+    // M-Pesa Callback Endpoint
+    if (endpoint === 'mpesa-callback' && req.method === 'POST') {
+      const { Body } = req.body;
+      const { stkCallback } = Body;
+      
+      console.log('📱 M-Pesa Callback Received:', JSON.stringify(stkCallback, null, 2));
+      
+      try {
+        const checkoutRequestID = stkCallback.CheckoutRequestID;
+        const resultCode = stkCallback.ResultCode;
+        
+        if (resultCode === 0) {
+          // Payment successful
+          const callbackMetadata = stkCallback.CallbackMetadata;
+          const items = callbackMetadata.Item;
+          
+          const amount = items.find((item: any) => item.Name === 'Amount')?.Value;
+          const mpesaReceiptNumber = items.find((item: any) => item.Name === 'MpesaReceiptNumber')?.Value;
+          const phoneNumber = items.find((item: any) => item.Name === 'PhoneNumber')?.Value;
+          
+          // Get the transaction from database
+          const transactionResult = await query(
+            'SELECT booking_id FROM mpesa_transactions WHERE checkout_request_id = $1',
+            [checkoutRequestID]
+          );
+          
+          if (transactionResult.rows.length > 0) {
+            const bookingId = transactionResult.rows[0].booking_id;
+            
+            // Get booking details
+            const bookingResult = await query(
+              'SELECT customer_id FROM bookings WHERE id = $1',
+              [bookingId]
+            );
+            
+            if (bookingResult.rows.length > 0) {
+              const customerId = bookingResult.rows[0].customer_id;
+              
+              // Create payment record
+              await query(
+                'INSERT INTO payments (booking_id, customer_id, amount, payment_method, status, transaction_id) VALUES ($1, $2, $3, $4, $5, $6)',
+                [bookingId, customerId, amount, 'MPesa', 'paid', mpesaReceiptNumber]
+              );
+              
+              // Update transaction status
+              await query(
+                'UPDATE mpesa_transactions SET status = $1, mpesa_receipt_number = $2 WHERE checkout_request_id = $3',
+                ['completed', mpesaReceiptNumber, checkoutRequestID]
+              );
+              
+              console.log('✅ M-Pesa payment processed successfully');
+            }
+          }
+        } else {
+          // Payment failed
+          await query(
+            'UPDATE mpesa_transactions SET status = $1 WHERE checkout_request_id = $2',
+            ['failed', checkoutRequestID]
+          );
+          console.log('❌ M-Pesa payment failed:', stkCallback.ResultDesc);
+        }
+        
+        return res.status(200).json({ ResultCode: 0, ResultDesc: 'Success' });
+      } catch (error) {
+        console.error('❌ M-Pesa Callback Error:', error);
+        return res.status(500).json({ ResultCode: 1, ResultDesc: 'Error processing callback' });
+      }
+    }
+
+    // ============================================
     // REVIEWS ENDPOINTS
     // ============================================
     if (endpoint === 'reviews') {

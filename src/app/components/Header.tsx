@@ -70,11 +70,18 @@ export function Header() {
                 <>
                   <span className="text-sm text-white">Hello, {user?.name || 'User'}</span>
                   {!isAdmin && (
-                    <Link to="/profile">
-                      <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
-                        My Profile
-                      </Button>
-                    </Link>
+                    <>
+                      <Link to="/my-bookings">
+                        <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
+                          My Bookings
+                        </Button>
+                      </Link>
+                      <Link to="/profile">
+                        <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
+                          My Profile
+                        </Button>
+                      </Link>
+                    </>
                   )}
                   {isAdmin && (
                     <Link to="/admin">
@@ -165,11 +172,18 @@ export function Header() {
                 <p className="font-semibold">{user?.name || 'User'}</p>
               </div>
               {!isAdmin && (
-                <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="outline" size="sm" className="w-full bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
-                    My Profile
-                  </Button>
-                </Link>
+                <>
+                  <Link to="/my-bookings" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
+                      My Bookings
+                    </Button>
+                  </Link>
+                  <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full bg-transparent text-white border-white hover:bg-white hover:text-[#3a3a3a]">
+                      My Profile
+                    </Button>
+                  </Link>
+                </>
               )}
               {isAdmin && (
                 <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
