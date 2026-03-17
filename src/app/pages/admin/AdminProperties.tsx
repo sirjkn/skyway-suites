@@ -22,6 +22,7 @@ export function AdminProperties() {
   const [airbnbCalendarUrl, setAirbnbCalendarUrl] = useState('');
   const [airbnbBookings, setAirbnbBookings] = useState<Array<{ checkIn: string; checkOut: string }>>([]);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [imageCategories, setImageCategories] = useState<{ [url: string]: string }>({}); // Track category for each image
   const [isCompressing, setIsCompressing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const [formData, setFormData] = useState({
@@ -118,6 +119,22 @@ export function AdminProperties() {
       // Use the first uploaded image as the main property image
       const mainImage = uploadedImages[0];
       
+      // Organize images by category
+      const categorizedPhotos: Property['categorizedPhotos'] = {
+        livingRoom: [],
+        bedroom: [],
+        kitchen: [],
+        dining: [],
+        amenities: [],
+      };
+      
+      uploadedImages.forEach(imageUrl => {
+        const category = imageCategories[imageUrl];
+        if (category && categorizedPhotos[category as keyof typeof categorizedPhotos]) {
+          categorizedPhotos[category as keyof typeof categorizedPhotos]!.push(imageUrl);
+        }
+      });
+      
       console.log('🔍 SUBMITTING PROPERTY:', {
         title: formData.title,
         description: formData.description,
@@ -129,6 +146,7 @@ export function AdminProperties() {
         category: formData.category,
         image: mainImage,
         photos: uploadedImages, // All uploaded images
+        categorizedPhotos, // Categorized images
         amenities: formData.amenities.split(',').map(a => a.trim()),
         available: true,
         icalUrl: '',
@@ -147,6 +165,7 @@ export function AdminProperties() {
         category: formData.category,
         image: mainImage,
         photos: uploadedImages, // All uploaded images for gallery
+        categorizedPhotos, // Categorized images
         amenities: formData.amenities.split(',').map(a => a.trim()),
         available: true,
         icalUrl: '',
@@ -362,6 +381,7 @@ export function AdminProperties() {
       amenities: '',
     });
     setUploadedImages([]);
+    setImageCategories({});
   };
 
   return (
@@ -670,18 +690,35 @@ export function AdminProperties() {
 
                 {/* Image Previews */}
                 {uploadedImages.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {uploadedImages.map((imageUrl, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={imageUrl}
-                          alt={`Upload ${index + 1}`}
-                          className="w-full h-24 object-cover rounded border"
-                        />
+                      <div key={index} className="relative border rounded-lg p-3 bg-gray-50">
+                        <div className="flex gap-3">
+                          <img
+                            src={imageUrl}
+                            alt={`Upload ${index + 1}`}
+                            className="w-24 h-24 object-cover rounded flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <label className="block text-xs font-medium mb-1.5">Category</label>
+                            <select
+                              value={imageCategories[imageUrl] || ''}
+                              onChange={(e) => setImageCategories({ ...imageCategories, [imageUrl]: e.target.value })}
+                              className="w-full h-9 px-2 text-xs rounded-md border border-gray-300 bg-white"
+                            >
+                              <option value="">Select Category</option>
+                              <option value="livingRoom">Living Room</option>
+                              <option value="bedroom">Bedroom</option>
+                              <option value="kitchen">Kitchen</option>
+                              <option value="dining">Dining</option>
+                              <option value="amenities">Amenities</option>
+                            </select>
+                          </div>
+                        </div>
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
-                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 hover:bg-red-700 transition-colors"
                         >
                           <X className="h-3 w-3" />
                         </button>
