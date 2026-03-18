@@ -4,27 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { toast } from 'sonner';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
-
-interface MpesaTransaction {
-  id: string;
-  checkout_request_id: string;
-  booking_id: string;
-  phone_number: string;
-  amount: string;
-  mpesa_receipt_number: string | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  property_name: string | null;
-  customer_name: string | null;
-  customer_email: string | null;
-  booking_status: string | null;
-  check_in: string | null;
-  check_out: string | null;
-  total_price: string | null;
-}
+import { getMpesaTransactions, MpesaTransaction } from '../../lib/api';
 
 export function MpesaTransactions() {
   const [transactions, setTransactions] = useState<MpesaTransaction[]>([]);
@@ -44,15 +24,9 @@ export function MpesaTransactions() {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}?endpoint=mpesa-transactions`);
-      const data = await response.json();
-      
-      if (response.ok) {
-        setTransactions(data.transactions);
-        setFilteredTransactions(data.transactions);
-      } else {
-        toast.error('Failed to fetch M-Pesa transactions');
-      }
+      const data = await getMpesaTransactions();
+      setTransactions(data);
+      setFilteredTransactions(data);
     } catch (error) {
       console.error('Error fetching M-Pesa transactions:', error);
       toast.error('Failed to load M-Pesa transactions');

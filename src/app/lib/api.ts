@@ -1031,3 +1031,33 @@ export async function deleteReview(id: string): Promise<void> {
     method: 'DELETE',
   });
 }
+
+// M-Pesa Transactions API
+export interface MpesaTransaction {
+  id: string;
+  checkout_request_id: string;
+  booking_id: string;
+  phone_number: string;
+  amount: string;
+  mpesa_receipt_number: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  property_name: string | null;
+  customer_name: string | null;
+  customer_email: string | null;
+  booking_status: string | null;
+  check_in: string | null;
+  check_out: string | null;
+  total_price: string | null;
+}
+
+export async function getMpesaTransactions(): Promise<MpesaTransaction[]> {
+  try {
+    const result = await fetchWithAuth(`${API_BASE_URL}?endpoint=mpesa-transactions`);
+    return result?.transactions || [];
+  } catch (error) {
+    console.error('Failed to fetch M-Pesa transactions:', error);
+    return [];
+  }
+}
