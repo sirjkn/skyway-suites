@@ -1824,15 +1824,26 @@ You can now use this SMTP configuration for automated notifications.
         
         if (stkData.ResponseCode === '0') {
           // Store the checkout request ID for later verification
-          await query(
-            'INSERT INTO mpesa_transactions (checkout_request_id, booking_id, phone_number, amount, status) VALUES ($1, $2, $3, $4, $5)',
+          console.log('💾 Inserting M-Pesa transaction:', {
+            checkoutRequestId: stkData.CheckoutRequestID,
+            bookingId,
+            phoneNumber,
+            amount,
+            status: 'pending'
+          });
+          
+          const insertResult = await query(
+            'INSERT INTO mpesa_transactions (checkout_request_id, booking_id, phone_number, amount, status) VALUES ($1, $2, $3, $4, $5) RETURNING *',
             [stkData.CheckoutRequestID, bookingId, phoneNumber, amount, 'pending']
           );
+          
+          console.log('✅ M-Pesa transaction saved to database:', insertResult.rows[0]);
           
           return res.status(200).json({ 
             success: true, 
             message: 'Payment request sent to your phone',
-            checkoutRequestId: stkData.CheckoutRequestID
+            checkoutRequestId: stkData.CheckoutRequestID,
+            transactionId: insertResult.rows[0].id
           });
         } else {
           console.error('❌ M-Pesa STK Push failed:', stkData);
@@ -1983,7 +1994,7 @@ You can now use this SMTP configuration for automated notifications.
         });
         
         const queryData = await queryResponse.json();
-        console.log('✅ M-Pesa Query Response:', queryData);
+        console.log('✅ M-Pesa Query Response:', JSON.stringify(queryData, null, 2));
         console.log('���� ResultCode:', queryData.ResultCode, 'Type:', typeof queryData.ResultCode);
         console.log('🔍 ResponseCode:', queryData.ResponseCode, 'Type:', typeof queryData.ResponseCode);
         
@@ -2021,13 +2032,15 @@ You can now use this SMTP configuration for automated notifications.
                   [booking_id, customerId, amount, 'MPesa', 'paid', checkoutRequestId]
                 );
                 
-                // Update transaction status
-                await query(
-                  'UPDATE mpesa_transactions SET status = $1 WHERE checkout_request_id = $2',
-                  ['completed', checkoutRequestId]
+                // Update transaction status and receipt number
+                console.log('💾 Updating transaction to completed...');
+                const updateResult = await query(
+                  'UPDATE mpesa_transactions SET status = $1, mpesa_receipt_number = $2, updated_at = CURRENT_TIMESTAMP WHERE checkout_request_id = $3 RETURNING *',
+                  ['completed', queryData.MpesaReceiptNumber || null, checkoutRequestId]
                 );
                 
                 console.log('✅ Payment record created from query');
+                console.log('✅ Transaction updated:', updateResult.rows[0]);
               }
               
               return res.status(200).json({
@@ -2093,6 +2106,8 @@ You can now use this SMTP configuration for automated notifications.
     // Get All M-Pesa Transactions (Admin)
     if (endpoint === 'mpesa-transactions' && req.method === 'GET') {
       try {
+        console.log('📋 Fetching M-Pesa transactions from database...');
+        
         const result = await query(`
           SELECT 
             mt.*,
@@ -2111,12 +2126,49 @@ You can now use this SMTP configuration for automated notifications.
           ORDER BY mt.created_at DESC
         `);
         
+        console.log(`✅ Found ${result.rows.length} M-Pesa transactions`);
+        
         return res.status(200).json({
           transactions: result.rows
         });
       } catch (error) {
         console.error('Failed to fetch M-Pesa transactions:', error);
         return res.status(500).json({ error: 'Failed to fetch M-Pesa transactions' });
+      }
+    }
+
+    // ============================================
+    // M-PESA DIAGNOSTICS
+    // ============================================
+    if (endpoint === 'mpesa-diagnostics' && req.method === 'GET') {
+      try {
+        console.log('🔍 Running M-Pesa diagnostics...');
+        
+        // Check if table exists
+        const tableCheck = await query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'mpesa_transactions'
+          );
+        `);
+        
+        // Count total transactions
+        const countResult = await query('SELECT COUNT(*) as count FROM mpesa_transactions');
+        
+        // Get sample transactions
+        const sampleResult = await query('SELECT * FROM mpesa_transactions ORDER BY created_at DESC LIMIT 5');
+        
+        return res.status(200).json({
+          tableExists: tableCheck.rows[0].exists,
+          totalTransactions: countResult.rows[0].count,
+          sampleTransactions: sampleResult.rows
+        });
+      } catch (error) {
+        console.error('M-Pesa diagnostics error:', error);
+        return res.status(500).json({ 
+          error: 'Diagnostics failed',
+          message: error instanceof Error ? error.message : String(error)
+        });
       }
     }
 

@@ -85,6 +85,24 @@ export function MpesaTransactions() {
     toast.success('CSV exported successfully');
   };
 
+  const runDiagnostics = async () => {
+    try {
+      const response = await fetch('/api?endpoint=mpesa-diagnostics');
+      const data = await response.json();
+      
+      console.log('🔍 M-Pesa Diagnostics:', data);
+      
+      if (data.tableExists) {
+        toast.success(`Database OK: ${data.totalTransactions} transactions found`);
+      } else {
+        toast.error('M-Pesa table does not exist!');
+      }
+    } catch (error) {
+      console.error('Diagnostics error:', error);
+      toast.error('Failed to run diagnostics');
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed':
@@ -159,6 +177,13 @@ export function MpesaTransactions() {
           >
             <Download className="h-4 w-4" />
             Export CSV
+          </Button>
+          <Button
+            onClick={runDiagnostics}
+            className="gap-2 bg-[#6B7C3C] hover:bg-[#5a6830]"
+          >
+            <CheckCircle className="h-4 w-4" />
+            Run Diagnostics
           </Button>
         </div>
       </div>

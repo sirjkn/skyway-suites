@@ -196,6 +196,12 @@ export function MyBookings() {
 
       if (data.success && data.status === 'completed') {
         toast.success('✅ Payment confirmed! Your booking is now paid.');
+        
+        // Show admin notification
+        setTimeout(() => {
+          toast.info('💡 Admin: Check M-Pesa Transactions page to see this payment', { duration: 5000 });
+        }, 2000);
+        
         setShowPaymentDialog(false);
         setCheckoutRequestId(null);
         loadData(); // Reload bookings
