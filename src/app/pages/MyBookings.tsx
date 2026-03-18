@@ -235,27 +235,40 @@ export function MyBookings() {
       
       // Fetch PayPal settings from API
       const settingsResponse = await fetch('/api?endpoint=get-payment-settings');
+      
+      if (!settingsResponse.ok) {
+        throw new Error('Failed to load PayPal settings from server');
+      }
+      
       const settings = await settingsResponse.json();
+      
+      console.log('📊 PayPal settings received:', {
+        hasClientId: !!settings.paypalClientId,
+        environment: settings.paypalEnvironment,
+        clientIdLength: settings.paypalClientId?.length || 0
+      });
       
       const PAYPAL_CLIENT_ID = settings.paypalClientId || '';
       const paypalEnvironment = settings.paypalEnvironment || 'sandbox';
       
       // Validate Client ID
-      if (!PAYPAL_CLIENT_ID) {
-        toast.error('PayPal is not configured. Please contact support.');
+      if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID.length < 10) {
+        console.error('❌ Invalid PayPal Client ID:', PAYPAL_CLIENT_ID);
+        toast.error('PayPal is not configured properly. Please contact the administrator to set up PayPal in Settings.');
         setProcessingPayment(false);
         setPaymentMethod(null);
         return;
       }
       
-      console.log(`✅ PayPal Client ID loaded (${paypalEnvironment} mode)`);
+      console.log(`✅ PayPal Client ID loaded (${paypalEnvironment} mode, ${PAYPAL_CLIENT_ID.substring(0, 10)}...)`);
       
       // Load PayPal SDK
+      console.log('📦 Loading PayPal SDK...');
       await loadPayPalScript(PAYPAL_CLIENT_ID);
       
       // Check if PayPal is loaded
       if (!window.paypal) {
-        throw new Error('PayPal SDK failed to load');
+        throw new Error('PayPal SDK failed to load. Please check your internet connection.');
       }
       
       console.log('✅ PayPal SDK loaded successfully');
@@ -273,53 +286,67 @@ export function MyBookings() {
       window.paypal.Buttons({
         createOrder: (data: any, actions: any) => {
           console.log('🔍 Creating PayPal order...');
+          const usdAmount = (remainingBalance / 130).toFixed(2);
+          console.log(`💰 Amount: KES ${remainingBalance} = USD ${usdAmount}`);
+          
           return actions.order.create({
             purchase_units: [{
               amount: {
-                value: (remainingBalance / 130).toFixed(2), // Convert KES to USD (approx rate)
+                value: usdAmount,
                 currency_code: 'USD',
               },
-              description: `Booking for ${property?.title || 'Property'}`,
+              description: `Skyway Suites - ${property?.title || 'Property Booking'}`,
             }],
           });
         },
         onApprove: async (data: any, actions: any) => {
           console.log('✅ PayPal payment approved, capturing order...');
-          const order = await actions.order.capture();
-          console.log('✅ PayPal order captured:', order);
           
-          // Save payment to database
-          const response = await fetch('/api?endpoint=payments', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              bookingId: selectedBooking.id,
-              customerId: selectedBooking.customerId,
-              amount: remainingBalance,
-              status: 'paid',
-              paymentMethod: 'PayPal',
-              transactionId: order.id,
-            }),
-          });
+          try {
+            const order = await actions.order.capture();
+            console.log('✅ PayPal order captured:', order);
+            
+            // Save payment to database
+            const response = await fetch('/api?endpoint=payments', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                bookingId: selectedBooking.id,
+                customerId: selectedBooking.customerId,
+                amount: remainingBalance,
+                status: 'paid',
+                paymentMethod: 'PayPal',
+                transactionId: order.id,
+              }),
+            });
 
-          if (response.ok) {
-            console.log('✅ Payment recorded in database');
-            toast.success('Payment successful!');
-            setShowPaymentDialog(false);
-            setPaymentMethod(null);
-            loadData();
-          } else {
-            console.error('❌ Failed to record payment');
-            toast.error('Payment successful but failed to record. Please contact support.');
+            if (response.ok) {
+              console.log('✅ Payment recorded in database');
+              toast.success('✅ Payment successful! Your booking is confirmed.');
+              setShowPaymentDialog(false);
+              setPaymentMethod(null);
+              loadData();
+            } else {
+              const errorData = await response.json();
+              console.error('❌ Failed to record payment:', errorData);
+              toast.error('Payment successful but failed to record. Please contact support with order ID: ' + order.id);
+            }
+          } catch (captureError) {
+            console.error('❌ Error capturing order:', captureError);
+            toast.error('Payment processing error. Please contact support.');
           }
         },
         onError: (err: any) => {
           console.error('❌ PayPal error:', err);
-          toast.error('PayPal payment failed. Please try again.');
+          toast.error(`PayPal error: ${err.message || 'Please try again or contact support.'}`);
+          setProcessingPayment(false);
+          setPaymentMethod(null);
         },
         onCancel: () => {
           console.log('⚠️ PayPal payment cancelled by user');
           toast.info('Payment cancelled');
+          setProcessingPayment(false);
+          setPaymentMethod(null);
         }
       }).render('#paypal-button-container');
       
@@ -328,7 +355,7 @@ export function MyBookings() {
     } catch (error) {
       console.error('❌ PayPal initialization error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to load PayPal: ${errorMessage}`);
+      toast.error(`Failed to initialize PayPal: ${errorMessage}`);
       setProcessingPayment(false);
       setPaymentMethod(null);
     }

@@ -60,20 +60,20 @@ export function MpesaTransactions() {
   };
 
   const exportToCSV = () => {
-    const headers = ['Date', 'Customer', 'Phone', 'Property', 'Amount', 'Receipt', 'Status'];
+    const headers = ['Date', 'Customer Name', 'Transaction ID', 'Amount', 'Phone', 'Property', 'Status'];
     const csvData = filteredTransactions.map(t => [
       new Date(t.created_at).toLocaleString(),
       t.customer_name || 'N/A',
+      t.mpesa_receipt_number || 'Pending',
+      `KES ${parseFloat(t.amount).toLocaleString()}`,
       t.phone_number,
       t.property_name || 'N/A',
-      `KES ${parseFloat(t.amount).toLocaleString()}`,
-      t.mpesa_receipt_number || 'Pending',
       t.status
     ]);
 
     const csv = [
       headers.join(','),
-      ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...csvData.map(row => row.map(cell => `\"${cell}\"`).join(','))
     ].join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -332,29 +332,32 @@ export function MpesaTransactions() {
               <table className="w-full">
                 <thead className="border-b">
                   <tr className="text-left text-sm text-gray-600">
-                    <th className="pb-3 font-medium">Date & Time</th>
-                    <th className="pb-3 font-medium">Customer</th>
+                    <th className="pb-3 font-medium">Date</th>
+                    <th className="pb-3 font-medium">Customer Name</th>
+                    <th className="pb-3 font-medium">Transaction ID</th>
+                    <th className="pb-3 font-medium">Amount</th>
                     <th className="pb-3 font-medium">Phone</th>
                     <th className="pb-3 font-medium">Property</th>
-                    <th className="pb-3 font-medium">Amount</th>
-                    <th className="pb-3 font-medium">Receipt</th>
                     <th className="pb-3 font-medium">Status</th>
-                    <th className="pb-3 font-medium">Checkout ID</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTransactions.map((transaction) => (
                     <tr key={transaction.id} className="border-b hover:bg-gray-50">
                       <td className="py-4">
-                        <div className="flex items-start gap-2">
-                          <Calendar className="h-4 w-4 text-gray-400 mt-0.5" />
-                          <div className="text-sm">
-                            <div className="font-medium text-[#3a3a3a]">
-                              {new Date(transaction.created_at).toLocaleDateString()}
-                            </div>
-                            <div className="text-gray-500 text-xs">
-                              {new Date(transaction.created_at).toLocaleTimeString()}
-                            </div>
+                        <div className="text-sm">
+                          <div className="font-medium text-[#3a3a3a]">
+                            {new Date(transaction.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </div>
+                          <div className="text-gray-500 text-xs">
+                            {new Date(transaction.created_at).toLocaleTimeString('en-US', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
                           </div>
                         </div>
                       </td>
@@ -372,6 +375,32 @@ export function MpesaTransactions() {
                         </div>
                       </td>
                       <td className="py-4">
+                        <div className="text-sm">
+                          {transaction.mpesa_receipt_number ? (
+                            <div>
+                              <div className="font-mono font-semibold text-[#6B7C3C]">
+                                {transaction.mpesa_receipt_number}
+                              </div>
+                              <div className="text-xs text-gray-400 font-mono mt-0.5">
+                                {transaction.checkout_request_id.substring(0, 20)}...
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <span className="text-gray-400 italic text-xs">No receipt yet</span>
+                              <div className="text-xs text-gray-400 font-mono mt-0.5">
+                                {transaction.checkout_request_id.substring(0, 20)}...
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-4">
+                        <div className="font-bold text-lg text-[#6B7C3C]">
+                          KES {parseFloat(transaction.amount).toLocaleString()}
+                        </div>
+                      </td>
+                      <td className="py-4">
                         <div className="flex items-center gap-2 text-sm">
                           <Phone className="h-4 w-4 text-gray-400" />
                           <span className="font-mono">{transaction.phone_number}</span>
@@ -384,24 +413,7 @@ export function MpesaTransactions() {
                         </div>
                       </td>
                       <td className="py-4">
-                        <div className="font-semibold text-[#6B7C3C]">
-                          KES {parseFloat(transaction.amount).toLocaleString()}
-                        </div>
-                      </td>
-                      <td className="py-4">
-                        <div className="text-sm font-mono">
-                          {transaction.mpesa_receipt_number || (
-                            <span className="text-gray-400 italic">Pending</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-4">
                         {getStatusBadge(transaction.status)}
-                      </td>
-                      <td className="py-4">
-                        <div className="text-xs font-mono text-gray-500 max-w-[150px] truncate">
-                          {transaction.checkout_request_id}
-                        </div>
                       </td>
                     </tr>
                   ))}

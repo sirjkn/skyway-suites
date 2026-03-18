@@ -2122,11 +2122,14 @@ You can now use this SMTP configuration for automated notifications.
           FROM mpesa_transactions mt
           LEFT JOIN bookings b ON mt.booking_id = b.id
           LEFT JOIN properties p ON b.property_id = p.id
-          LEFT JOIN users u ON b.user_id = u.id
+          LEFT JOIN users u ON b.customer_id = u.id
           ORDER BY mt.created_at DESC
         `);
         
         console.log(`✅ Found ${result.rows.length} M-Pesa transactions`);
+        if (result.rows.length > 0) {
+          console.log('📊 Sample transaction:', JSON.stringify(result.rows[0], null, 2));
+        }
         
         return res.status(200).json({
           transactions: result.rows
