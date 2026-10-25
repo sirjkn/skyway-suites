@@ -146,7 +146,7 @@ export function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Phone</h3>
-                    <p className="text-gray-600 text-sm">+1 (555) 123-4567</p>
+                    <p className="text-gray-600 text-sm">+254 713 889 495</p>
                     <p className="text-gray-600 text-sm">Mon-Fri 9am-6pm EST</p>
                   </div>
                 </div>
@@ -161,8 +161,8 @@ export function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Office</h3>
-                    <p className="text-gray-600 text-sm">123 Main Street, Suite 100</p>
-                    <p className="text-gray-600 text-sm">New York, NY 10001</p>
+                    <p className="text-gray-600 text-sm">Waiyaki Way Westlands</p>
+                    <p className="text-gray-600 text-sm">Nairobi, Kenya</p>
                   </div>
                 </div>
               </CardContent>
